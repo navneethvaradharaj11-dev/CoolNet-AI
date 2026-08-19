@@ -1,0 +1,26 @@
+{
+  "model_type": "GradientBoostingRegressor",
+  "target": "compound_risk_score (0-100)",
+  "r2_score": 0.996,
+  "mae": 1.24,
+  "rmse": 1.73,
+  "feature_order": [
+    "temperature",
+    "humidity",
+    "heat_index",
+    "electricity_demand_pct",
+    "outage_probability",
+    "population_density",
+    "vulnerability_index"
+  ],
+  "feature_importances": {
+    "temperature": 0.2153,
+    "humidity": 0.0001,
+    "heat_index": 0.605,
+    "electricity_demand_pct": 0.0052,
+    "outage_probability": 0.1685,
+    "population_density": 0.0021,
+    "vulnerability_index": 0.0037
+  },
+  "export_timestamp": "2026-08-19"
+}
