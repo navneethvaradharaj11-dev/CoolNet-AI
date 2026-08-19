@@ -1,14 +1,36 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { DATA_HEALTH } from '@/lib/mock-data/demo-data';
 import { DemoTag } from '@/components/ui/DemoTag';
 
-export function Header() {
+export function Header({ isWeatherLive }: { isWeatherLive?: boolean }) {
   const [time, setTime] = useState(new Date());
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const statusItems = [
+    {
+      key: 'weather',
+      label: isWeatherLive ? 'Weather API (LIVE)' : 'Weather API (MOCK)',
+      colorClass: isWeatherLive ? 'bg-[#22c55e]' : 'bg-[#eab308]'
+    },
+    {
+      key: 'grid',
+      label: 'Grid Telemetry (SIMULATED)',
+      colorClass: 'bg-[#eab308]'
+    },
+    {
+      key: 'svi',
+      label: 'SVI Index (SIMULATED)',
+      colorClass: 'bg-[#eab308]'
+    },
+    {
+      key: 'ml',
+      label: isWeatherLive ? 'ML Model (LIVE)' : 'ML Model (DEMO)',
+      colorClass: isWeatherLive ? 'bg-[#22c55e]' : 'bg-[#eab308]'
+    }
+  ];
 
   return (
     <header className="flex items-center justify-between h-14 px-6 border-b border-[#1c2740] bg-[#0c1220] z-50">
@@ -26,11 +48,11 @@ export function Header() {
         </div>
       </div>
       <div className="flex items-center gap-6">
-        <div className="hidden md:flex items-center gap-4 text-xs text-[#6e7a92]">
-          {DATA_HEALTH.map(d => (
-            <div key={d.source} className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#eab308]"></span>
-              {d.source}
+        <div className="hidden lg:flex items-center gap-4 text-xs text-[#6e7a92]">
+          {statusItems.map(item => (
+            <div key={item.key} className="flex items-center gap-1.5">
+              <span className={`w-1.5 h-1.5 rounded-full ${item.colorClass}`}></span>
+              {item.label}
             </div>
           ))}
         </div>

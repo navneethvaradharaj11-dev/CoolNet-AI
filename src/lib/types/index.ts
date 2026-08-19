@@ -9,7 +9,7 @@ export interface Ward {
   geometry: GeoJSON.Polygon;
 }
 
-export interface WeatherData { wardId: string; temperature: number; humidity: number; heatIndex: number; timestamp: string; }
+export interface WeatherData { wardId: string; temperature: number; humidity: number; heatIndex: number; wbgt?: number; timestamp: string; isReal?: boolean; }
 export interface GridData { wardId: string; electricityDemand: number; gridStress: number; historicalOutageFreq: number; timestamp: string; }
 export interface VulnerabilityData { wardId: string; vulnerabilityScore: number; coolingAccess: number; elderlyRatio: number; incomeIndex: number; }
 export interface RiskPrediction { wardId: string; compoundRiskScore: number; riskLevel: RiskLevel; predicted30min: number; predicted60min: number; timestamp: string; }

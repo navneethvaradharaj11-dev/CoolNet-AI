@@ -1,13 +1,16 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Header } from '@/components/layout/Header';
 import { WardList } from '@/components/panels/WardList';
 import { WardDetail } from '@/components/panels/WardDetail';
 import { ForecastPanel } from '@/components/panels/ForecastPanel';
 import { SimulationPanel } from '@/components/simulation/SimulationPanel';
-import { getAllWardsFeatureData } from '@/lib/mock-data/demo-data';
+import { getAllWardsFeatureData, getWardFeaturesForML } from '@/lib/mock-data/demo-data';
 import { DemoTag } from '@/components/ui/DemoTag';
+import { fetchBatchLiveWeather } from '@/lib/services/weather-service';
+import { mockMLService } from '@/lib/ml/mock-ml-service';
+import { WardFeatureData } from '@/lib/types';
 
 const RiskMap = dynamic(() => import('@/components/map/RiskMap'), {
   ssr: false,
@@ -16,15 +19,72 @@ const RiskMap = dynamic(() => import('@/components/map/RiskMap'), {
 
 export default function Dashboard() {
   const [selectedWardId, setSelectedWardId] = useState<string | null>('ward-09');
-  const wardsData = getAllWardsFeatureData();
+  const [wardsData, setWardsData] = useState<WardFeatureData[]>(() => getAllWardsFeatureData());
+  const [isWeatherLive, setIsWeatherLive] = useState(false);
   const selectedData = wardsData.find(w => w.ward.id === selectedWardId) || wardsData[0];
+
+  useEffect(() => {
+    async function loadLiveWeather() {
+      const liveWeatherMap = await fetchBatchLiveWeather();
+      if (liveWeatherMap) {
+        const updatedWards = await Promise.all(
+          wardsData.map(async (wardData) => {
+            const live = liveWeatherMap[wardData.ward.id];
+            if (!live) return wardData;
+
+            const newWeather = {
+              ...wardData.weather,
+              temperature: live.temperature,
+              humidity: live.humidity,
+              heatIndex: live.heatIndex,
+              wbgt: live.wbgt,
+              timestamp: live.timestamp,
+              isReal: true
+            };
+
+            const mockFeatures = getWardFeaturesForML(wardData.ward.id);
+            if (!mockFeatures) return wardData;
+
+            const updatedFeatures = {
+              ...mockFeatures,
+              temperature: newWeather.temperature,
+              humidity: newWeather.humidity,
+              heatIndex: newWeather.heatIndex,
+              timestamp: newWeather.timestamp
+            };
+
+            const riskResult = await mockMLService.calculateCompoundRisk(updatedFeatures);
+            const explanationResult = await mockMLService.getRiskExplanation(updatedFeatures);
+
+            return {
+              ...wardData,
+              weather: newWeather,
+              risk: {
+                ...wardData.risk,
+                compoundRiskScore: riskResult.score,
+                riskLevel: riskResult.level
+              },
+              explanation: explanationResult
+            };
+          })
+        );
+        setWardsData(updatedWards);
+        setIsWeatherLive(true);
+      }
+    }
+    loadLiveWeather();
+  }, []);
 
   return (
     <div className="h-screen flex flex-col bg-[#070b14]">
-      <Header />
+      <Header isWeatherLive={isWeatherLive} />
       <div className="bg-[#0c1220] border-b border-[#1c2740] py-1.5 px-6 flex justify-center items-center gap-2 text-xs text-[#6e7a92]">
         <DemoTag />
-        <span>System is running on seeded mock data and heuristic models. Not for production use.</span>
+        <span>
+          {isWeatherLive 
+            ? "Compound risk calculated using LIVE weather telemetry from Open-Meteo API and simulated grid-stress coefficients."
+            : "System is running on seeded mock data and heuristic models. Not for production use."}
+        </span>
       </div>
       <main className="flex-1 grid grid-cols-12 gap-4 p-4 overflow-hidden">
         {/* Left Sidebar - Ward List */}
