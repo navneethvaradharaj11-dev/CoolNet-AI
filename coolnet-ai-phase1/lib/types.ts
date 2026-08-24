@@ -81,12 +81,18 @@ export interface FeatureContribution {
 }
 
 export interface RiskExplanation {
-  ward_id: string;
-  timestamp: string;
-  contributions: FeatureContribution[];
-  method: "demo-heuristic" | "shap";
-  note: string;
-  is_demo: boolean;
+  ward_id?: string;
+  timestamp?: string;
+  contributions?: FeatureContribution[];
+  method?: "demo-heuristic" | "shap";
+  note?: string;
+  is_demo?: boolean;
+
+  // Fields for demo-data.ts compatibility
+  heatStress?: number;
+  gridStress?: number;
+  vulnerability?: number;
+  coolingAccess?: number;
 }
 
 /** A single point in a short-term risk forecast timeline. */
@@ -125,11 +131,16 @@ export interface ScenarioResult {
 /** A recommended preventive action, tied to a risk level. */
 export interface Intervention {
   id: string;
-  ward_id: string;
-  risk_level: RiskLevel;
-  priority: number; // 1 = highest priority
-  action: string;
-  category: "cooling" | "communication" | "grid-ops" | "restoration-planning";
+  ward_id?: string;
+  risk_level?: RiskLevel;
+  priority: number | "CRITICAL" | "HIGH" | "MODERATE" | "LOW";
+  action?: string;
+  category: "cooling" | "communication" | "grid-ops" | "restoration-planning" | "alert" | "grid" | "planning" | "medical";
+  
+  // From demo-data.ts / d:\Coolnet types
+  title?: string;
+  description?: string;
+  applicableLevels?: RiskLevel[];
 }
 
 /** Health/status of an upstream data feed. */
@@ -206,4 +217,69 @@ export interface GeospatialGridCell {
   weather?: WeatherData;
   incidentCount: number;
 }
+
+export interface Ward {
+  id: string;
+  name: string;
+  population: number;
+  areaSqKm: number;
+  center: [number, number];
+  geometry: GeoJSON.Polygon;
+}
+
+export interface GridData {
+  wardId: string;
+  electricityDemand: number;
+  gridStress: number;
+  historicalOutageFreq: number;
+  timestamp: string;
+}
+
+export interface VulnerabilityData {
+  wardId: string;
+  vulnerabilityScore: number;
+  coolingAccess: number;
+  elderlyRatio: number;
+  incomeIndex: number;
+}
+
+export interface RiskPrediction {
+  wardId: string;
+  compoundRiskScore: number;
+  riskLevel: RiskLevel;
+  predicted30min: number;
+  predicted60min: number;
+  timestamp: string;
+}
+
+export interface DataHealthStatus {
+  source: string;
+  status: "demo" | "live" | "stale" | "error";
+  lastUpdate: string;
+  label: string;
+}
+
+export interface WardFeatureData {
+  ward: Ward;
+  weather: WeatherData;
+  grid: GridData;
+  vulnerability: VulnerabilityData;
+  risk: RiskPrediction;
+  explanation: RiskExplanation;
+}
+
+export interface MLFeatures {
+  temperature: number;
+  humidity: number;
+  heatIndex: number;
+  electricityDemand: number;
+  gridStress: number;
+  historicalOutageFreq: number;
+  populationDensity: number;
+  vulnerabilityScore: number;
+  coolingAccess: number;
+  timestamp: string;
+  wardId: string;
+}
+
 

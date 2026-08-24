@@ -5,6 +5,7 @@ import type { DataFeedHealth } from "@/lib/types";
 import { getDataFeedHealth } from "@/lib/data/mockDataService";
 import { CardHeader } from "@/components/ui/Card";
 import { DemoTag } from "@/components/ui/DemoTag";
+import { DataProvenance } from "@/components/ui/DataProvenance";
 
 function StatusDot({ status }: { status: DataFeedHealth["status"] }) {
   const color =
@@ -53,6 +54,11 @@ export function DataHealthPanel({ compact = false }: { compact?: boolean }) {
           </div>
         ))}
       </div>
+      {!compact && (
+        <div className="mt-4 px-4 pb-4">
+          <DataProvenance />
+        </div>
+      )}
     </div>
   );
 }

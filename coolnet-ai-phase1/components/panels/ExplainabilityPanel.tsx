@@ -24,7 +24,7 @@ export function ExplainabilityPanel({
     );
   }
 
-  const maxAbs = Math.max(...explanation.contributions.map((c) => Math.abs(c.contribution)), 1);
+  const maxAbs = Math.max(...(explanation.contributions ?? []).map((c) => Math.abs(c.contribution)), 1);
 
   return (
     <div>
@@ -34,7 +34,7 @@ export function ExplainabilityPanel({
         right={<DemoTag />}
       />
       <div className="space-y-3 px-4 py-4">
-        {explanation.contributions.map((c) => {
+        {(explanation.contributions ?? []).map((c) => {
           const widthPct = Math.min(100, (Math.abs(c.contribution) / maxAbs) * 100);
           const color = FACTOR_COLORS[c.factor] ?? "#2dd4bf";
           return (

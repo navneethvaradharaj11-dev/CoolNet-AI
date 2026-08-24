@@ -13,6 +13,10 @@ const CATEGORY_LABEL: Record<Intervention["category"], string> = {
   communication: "Communication",
   "grid-ops": "Grid Operations",
   "restoration-planning": "Restoration Planning",
+  alert: "Alerts & Advisories",
+  grid: "Grid Interventions",
+  planning: "Planning & Prep",
+  medical: "Medical Support",
 };
 
 function WardInterventionCard({ ward }: { ward: WardSummary }) {
