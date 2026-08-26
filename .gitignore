@@ -1,7 +1,7 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
+node_modules/
+coolnet-ai-phase1/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -15,7 +15,11 @@
 
 # next.js
 /.next/
+.next/
+coolnet-ai-phase1/.next/
 /out/
+out/
+coolnet-ai-phase1/out/
 
 # production
 /build
@@ -30,12 +34,15 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files
+.env*.local
+.env.local
 
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
+tsconfig.tsbuildinfo
 next-env.d.ts
+
