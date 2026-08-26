@@ -2,7 +2,12 @@
 import { useEffect, useState } from 'react';
 import { DemoTag } from '@/components/ui/DemoTag';
 
-export function Header({ isWeatherLive }: { isWeatherLive?: boolean }) {
+interface HeaderProps {
+  isWeatherLive?: boolean;
+  isGridLive?: boolean;
+}
+
+export function Header({ isWeatherLive, isGridLive }: HeaderProps) {
   const [time, setTime] = useState(new Date());
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -17,18 +22,18 @@ export function Header({ isWeatherLive }: { isWeatherLive?: boolean }) {
     },
     {
       key: 'grid',
-      label: 'Grid Telemetry (SIMULATED)',
-      colorClass: 'bg-[#eab308]'
+      label: isGridLive ? 'Grid Telemetry (LIVE)' : 'Grid Telemetry (SIMULATED)',
+      colorClass: isGridLive ? 'bg-[#22c55e]' : 'bg-[#eab308]'
     },
     {
       key: 'svi',
-      label: 'SVI Index (SIMULATED)',
-      colorClass: 'bg-[#eab308]'
+      label: isGridLive ? 'SVI Index (LIVE)' : 'SVI Index (SIMULATED)',
+      colorClass: isGridLive ? 'bg-[#22c55e]' : 'bg-[#eab308]'
     },
     {
       key: 'ml',
-      label: isWeatherLive ? 'ML Model (LIVE)' : 'ML Model (DEMO)',
-      colorClass: isWeatherLive ? 'bg-[#22c55e]' : 'bg-[#eab308]'
+      label: (isWeatherLive || isGridLive) ? 'ML Model (LIVE)' : 'ML Model (DEMO)',
+      colorClass: (isWeatherLive || isGridLive) ? 'bg-[#22c55e]' : 'bg-[#eab308]'
     }
   ];
 

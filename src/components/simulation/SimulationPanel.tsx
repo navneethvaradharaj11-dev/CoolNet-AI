@@ -4,6 +4,7 @@ import { WardFeatureData, SimulationResult, SimulationInput } from '@/lib/types'
 import { mockMLService } from '@/lib/ml/mock-ml-service';
 import { getWardFeaturesForML } from '@/lib/mock-data/demo-data';
 import { RiskBadge } from '@/components/ui/RiskBadge';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase/supabase-client';
 
 interface SimulationPanelProps {
   data: WardFeatureData;
@@ -26,10 +27,33 @@ export function SimulationPanel({ data }: SimulationPanelProps) {
       coolingAccessChange: coolingChange,
       wardId: data.ward.id,
     };
+    
     setTimeout(async () => {
       const res = await mockMLService.runScenarioSimulation(features, input);
       setResult(res);
       setLoading(false);
+
+      // Auditing simulation log record to Supabase
+      if (isSupabaseConfigured() && supabase) {
+        try {
+          const { error } = await supabase
+            .from('simulation_logs')
+            .insert({
+              ward_id: data.ward.id,
+              temperature_change: tempChange,
+              demand_change: demandChange,
+              cooling_access_change: coolingChange,
+              original_risk: res.originalRisk,
+              new_risk: res.newRisk,
+              risk_delta: res.riskDelta,
+              new_risk_level: res.newRiskLevel
+            });
+          if (error) throw error;
+          console.log('⚡ CoolNet DB: Logged simulation audit record to Supabase');
+        } catch (dbErr) {
+          console.warn('⚡ CoolNet DB: Failed to audit log simulation', dbErr);
+        }
+      }
     }, 600);
   };
 

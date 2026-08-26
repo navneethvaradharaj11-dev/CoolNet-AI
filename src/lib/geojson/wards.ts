@@ -28,3 +28,14 @@ export const WARDS_GEOJSON: GeoJSON.FeatureCollection = {
   type: 'FeatureCollection',
   features: W.map(w => ({ type: 'Feature', properties: { wardId: w.id, name: w.name }, geometry: w.geometry })),
 };
+
+export function getWardById(id: string): (Ward & { baselineVulnerabilityIndex?: number; populationDensity?: number }) | undefined {
+  const found = W.find(w => w.id === id);
+  if (!found) return undefined;
+  return {
+    ...found,
+    populationDensity: Math.round(found.population / found.areaSqKm),
+    baselineVulnerabilityIndex: 0.65
+  };
+}
+

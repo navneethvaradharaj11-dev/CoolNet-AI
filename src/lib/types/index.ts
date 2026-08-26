@@ -9,7 +9,56 @@ export interface Ward {
   geometry: GeoJSON.Polygon;
 }
 
-export interface WeatherData { wardId: string; temperature: number; humidity: number; heatIndex: number; wbgt?: number; timestamp: string; isReal?: boolean; }
+export interface WeatherData {
+  wardId?: string;
+  temperature: number;
+  humidity: number;
+  heatIndex: number;
+  wbgt?: number;
+  timestamp: string;
+  isReal?: boolean;
+  
+  // Real-time detailed weather metrics
+  feelsLike?: number;
+  condition?: string;
+  windSpeed?: number;
+  windDirection?: number;
+  pressure?: number;
+  visibility?: number;
+  uvIndex?: number;
+  precipitation?: number;
+  source?: string;
+}
+
+export interface AddressDetails {
+  road?: string;
+  neighbourhood?: string;
+  suburb?: string;
+  city_district?: string;
+  city?: string;
+  town?: string;
+  village?: string;
+  county?: string;
+  state?: string;
+  postcode?: string;
+  country?: string;
+  country_code?: string;
+  displayName?: string;
+}
+
+export interface GeospatialGridCell {
+  id: string;
+  center: [number, number]; // [lat, lng]
+  bounds: [[number, number], [number, number]]; // [[south, west], [north, east]]
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+  areaSqKm: number;
+  weather?: WeatherData;
+  incidentCount: number;
+}
+
 export interface GridData { wardId: string; electricityDemand: number; gridStress: number; historicalOutageFreq: number; timestamp: string; }
 export interface VulnerabilityData { wardId: string; vulnerabilityScore: number; coolingAccess: number; elderlyRatio: number; incomeIndex: number; }
 export interface RiskPrediction { wardId: string; compoundRiskScore: number; riskLevel: RiskLevel; predicted30min: number; predicted60min: number; timestamp: string; }

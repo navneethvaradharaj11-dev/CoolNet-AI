@@ -11,6 +11,7 @@ import { DemoTag } from '@/components/ui/DemoTag';
 import { fetchBatchLiveWeather } from '@/lib/services/weather-service';
 import { mockMLService } from '@/lib/ml/mock-ml-service';
 import { WardFeatureData } from '@/lib/types';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase/supabase-client';
 
 const RiskMap = dynamic(() => import('@/components/map/RiskMap'), {
   ssr: false,
@@ -21,68 +22,143 @@ export default function Dashboard() {
   const [selectedWardId, setSelectedWardId] = useState<string | null>('ward-09');
   const [wardsData, setWardsData] = useState<WardFeatureData[]>(() => getAllWardsFeatureData());
   const [isWeatherLive, setIsWeatherLive] = useState(false);
+  const [isGridLive, setIsGridLive] = useState(false);
   const selectedData = wardsData.find(w => w.ward.id === selectedWardId) || wardsData[0];
 
   useEffect(() => {
-    async function loadLiveWeather() {
+    async function loadLiveWeatherData() {
+      // 1. Fetch live Open-Meteo weather
       const liveWeatherMap = await fetchBatchLiveWeather();
-      if (liveWeatherMap) {
-        const updatedWards = await Promise.all(
-          wardsData.map(async (wardData) => {
-            const live = liveWeatherMap[wardData.ward.id];
-            if (!live) return wardData;
 
-            const newWeather = {
-              ...wardData.weather,
-              temperature: live.temperature,
-              humidity: live.humidity,
-              heatIndex: live.heatIndex,
-              wbgt: live.wbgt,
-              timestamp: live.timestamp,
-              isReal: true
-            };
+      // 2. Fetch live grid/SVI from Supabase if configured
+      const dbGridMap: Record<string, { electricityDemand: number; gridStress: number; historicalOutageFreq: number }> = {};
+      const dbVulnerabilityMap: Record<string, { vulnerabilityScore: number; coolingAccess: number; elderlyRatio: number; incomeIndex: number }> = {};
+      let hasDbConnection = false;
 
-            const mockFeatures = getWardFeaturesForML(wardData.ward.id);
-            if (!mockFeatures) return wardData;
+      if (isSupabaseConfigured() && supabase) {
+        try {
+          console.log('⚡ CoolNet DB: Connecting to Supabase server...');
+          const { data: gridData, error: gridError } = await supabase
+            .from('grid_telemetry')
+            .select('*');
 
-            const updatedFeatures = {
-              ...mockFeatures,
-              temperature: newWeather.temperature,
-              humidity: newWeather.humidity,
-              heatIndex: newWeather.heatIndex,
-              timestamp: newWeather.timestamp
-            };
+          const { data: vulData, error: vulError } = await supabase
+            .from('vulnerability_index')
+            .select('*');
 
-            const riskResult = await mockMLService.calculateCompoundRisk(updatedFeatures);
-            const explanationResult = await mockMLService.getRiskExplanation(updatedFeatures);
+          if (gridError) throw gridError;
+          if (vulError) throw vulError;
 
-            return {
-              ...wardData,
-              weather: newWeather,
-              risk: {
-                ...wardData.risk,
-                compoundRiskScore: riskResult.score,
-                riskLevel: riskResult.level
-              },
-              explanation: explanationResult
-            };
-          })
-        );
-        setWardsData(updatedWards);
-        setIsWeatherLive(true);
+          if (gridData && gridData.length > 0) {
+            gridData.forEach(item => {
+              dbGridMap[item.ward_id] = {
+                electricityDemand: Number(item.electricity_demand),
+                gridStress: Number(item.grid_stress),
+                historicalOutageFreq: Number(item.historical_outage_freq)
+              };
+            });
+            hasDbConnection = true;
+          }
+
+          if (vulData && vulData.length > 0) {
+            vulData.forEach(item => {
+              dbVulnerabilityMap[item.ward_id] = {
+                vulnerabilityScore: Number(item.vulnerability_score),
+                coolingAccess: Number(item.cooling_access),
+                elderlyRatio: Number(item.elderly_ratio),
+                incomeIndex: Number(item.income_index)
+              };
+            });
+          }
+        } catch (dbErr) {
+          console.error('⚡ CoolNet DB: Database telemetry fetch failed', dbErr);
+        }
       }
+
+      // 3. Map wardsData with either live database data or mock fallbacks
+      const updatedWards = await Promise.all(
+        wardsData.map(async (wardData) => {
+          // Merge live weather
+          const liveWeather = liveWeatherMap ? liveWeatherMap[wardData.ward.id] : null;
+          const newWeather = liveWeather ? {
+            ...wardData.weather,
+            temperature: liveWeather.temperature,
+            humidity: liveWeather.humidity,
+            heatIndex: liveWeather.heatIndex,
+            wbgt: liveWeather.wbgt,
+            timestamp: liveWeather.timestamp,
+            isReal: true
+          } : wardData.weather;
+
+          // Merge Supabase grid telemetry
+          const dbGrid = dbGridMap[wardData.ward.id];
+          const newGrid = dbGrid ? {
+            ...wardData.grid,
+            electricityDemand: dbGrid.electricityDemand,
+            gridStress: dbGrid.gridStress,
+            historicalOutageFreq: dbGrid.historicalOutageFreq
+          } : wardData.grid;
+
+          // Merge Supabase vulnerability indices
+          const dbVul = dbVulnerabilityMap[wardData.ward.id];
+          const newVul = dbVul ? {
+            ...wardData.vulnerability,
+            vulnerabilityScore: dbVul.vulnerabilityScore,
+            coolingAccess: dbVul.coolingAccess,
+            elderlyRatio: dbVul.elderlyRatio,
+            incomeIndex: dbVul.incomeIndex
+          } : wardData.vulnerability;
+
+          // Recalculate compound risk using ML model
+          const mockFeatures = getWardFeaturesForML(wardData.ward.id);
+          if (!mockFeatures) return wardData;
+
+          const updatedFeatures = {
+            ...mockFeatures,
+            temperature: newWeather.temperature,
+            humidity: newWeather.humidity,
+            heatIndex: newWeather.heatIndex,
+            electricityDemand: newGrid.electricityDemand,
+            gridStress: newGrid.gridStress,
+            vulnerabilityScore: newVul.vulnerabilityScore,
+            coolingAccess: newVul.coolingAccess
+          };
+
+          const riskResult = await mockMLService.calculateCompoundRisk(updatedFeatures);
+          const explanationResult = await mockMLService.getRiskExplanation(updatedFeatures);
+
+          return {
+            ...wardData,
+            weather: newWeather,
+            grid: newGrid,
+            vulnerability: newVul,
+            risk: {
+              ...wardData.risk,
+              compoundRiskScore: riskResult.score,
+              riskLevel: riskResult.level
+            },
+            explanation: explanationResult
+          };
+        })
+      );
+
+      setWardsData(updatedWards);
+      if (liveWeatherMap) setIsWeatherLive(true);
+      if (hasDbConnection) setIsGridLive(true);
     }
-    loadLiveWeather();
+    loadLiveWeatherData();
   }, []);
 
   return (
     <div className="h-screen flex flex-col bg-[#070b14]">
-      <Header isWeatherLive={isWeatherLive} />
+      <Header isWeatherLive={isWeatherLive} isGridLive={isGridLive} />
       <div className="bg-[#0c1220] border-b border-[#1c2740] py-1.5 px-6 flex justify-center items-center gap-2 text-xs text-[#6e7a92]">
         <DemoTag />
         <span>
-          {isWeatherLive 
-            ? "Compound risk calculated using LIVE weather telemetry from Open-Meteo API and simulated grid-stress coefficients."
+          {isWeatherLive && isGridLive
+            ? "Compound risk calculated using LIVE weather telemetry (Open-Meteo) and LIVE grid-stress databases (Supabase)."
+            : isWeatherLive
+            ? "Compound risk calculated using LIVE weather telemetry (Open-Meteo) and simulated grid-stress coefficients."
             : "System is running on seeded mock data and heuristic models. Not for production use."}
         </span>
       </div>

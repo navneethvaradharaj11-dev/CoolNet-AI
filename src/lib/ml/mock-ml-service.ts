@@ -49,4 +49,13 @@ export class MockMLService implements MLService {
   }
 }
 
+export function calculateHeatIndex(tempC: number, humidityPct: number): number {
+  return Math.round((tempC + (humidityPct * 0.1)) * 10) / 10;
+}
+
+export function classifyRiskLevel(score: number): RiskLevel {
+  return score >= 70 ? 'CRITICAL' : score >= 50 ? 'HIGH' : score >= 30 ? 'MODERATE' : 'LOW';
+}
+
 export const mockMLService = new MockMLService();
+
