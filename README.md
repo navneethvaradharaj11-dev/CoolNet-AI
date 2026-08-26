@@ -1,13 +1,12 @@
-# 🌐 CoolNet AI
+# 🌐 CoolNet AI (Dart & Flutter)
 
 **Compound Heat–Grid Risk Intelligence Dashboard & ML System**
 
-A climate-risk decision-support platform that identifies vulnerable electrical grid wards, quantifies risk exposure, forecasts escalation patterns, and recommends preventive interventions. Built with AI/ML explainability, real ONNX client-side inference, and an LLM decision-support layer at its core.
+A climate-risk decision-support platform that identifies vulnerable electrical grid wards, quantifies risk exposure, forecasts escalation patterns, and recommends preventive interventions. Built with Dart programming language, Flutter Web/Desktop, AI/ML explainability, and thermodynamic calculation engines.
 
 🚀 **Live Vercel Demo**: [https://coolnet-ai-phase1-theta.vercel.app](https://coolnet-ai-phase1-theta.vercel.app)
 
 ---
-
 
 ## 🎯 What It Does
 
@@ -15,79 +14,70 @@ CoolNet AI is a visual command center for grid operators and climate resilience 
 
 - **Identify Risk**: Spot which wards face the highest compound heat-grid stress
 - **Understand Why**: Get explainable AI insights into risk drivers (weather, infrastructure, demographics) via SHAP feature attributions
-- **Real-Time ONNX Inference**: Client-side WASM neural/tree model inference for zero-latency ward risk calculation
-- **LLM Explanation Layer**: Structured, multi-rule safe AI alerts for emergency coordinators
+- **Native Dart Physics & ML Engine**: NWS Rothfusz heat index regression & spatial heat diffusion in Dart
+- **Flutter GIS Mapping**: Leaflet-compatible vector map layers built natively using `flutter_map`
 - **Simulate Interventions**: Test "what-if" scenarios (load shifting, demand reduction, strategic outage)
-- **Supabase Integration**: Live database telemetry and simulation audit logging
+- **Multi-Platform**: Runs on Flutter Web, Windows Desktop, Linux, macOS, iOS, and Android
 
 ---
 
-## 🏗️ Architecture & Tech Stack
+## 🏗️ Architecture & Tech Stack (Dart / Flutter)
 
 | Layer | Tech | Description |
 |-------|------|-------------|
-| **Frontend** | Next.js 14, React 19, TypeScript | Command-center dashboard |
-| **ONNX Runtime** | `onnxruntime-web` (WASM) | Client-side ML model inference |
-| **Python LLM Layer** | Python 3.10+, Pydantic v2, OpenAI API | Safety-checked AI explanation service |
-| **Mapping** | Leaflet + `react-leaflet` | Interactive GIS ward visualization |
-| **Database** | Supabase (PostgreSQL) | Live telemetry & audit logging |
+| **Frontend Framework** | Flutter 3.44+ (Dart 3.12+) | Multi-platform command-center UI |
+| **GIS & Mapping** | `flutter_map` + `latlong2` | Interactive vector ward map & markers |
+| **Typography & Theme** | Google Fonts (Inter) | Dark command-center aesthetic |
+| **Thermodynamics & Physics** | Native Dart Math Engine | NWS Rothfusz Heat Index & spatial heat diffusion |
+| **Python LLM Layer** | Python 3.10+, Pydantic v2 | Safety-checked AI explanation service |
 
 ---
 
-## 📁 Project Structure
+## 📁 Project Structure (Dart / Flutter)
 
 ```
-├── app/                        # Next.js App Router pages
-├── components/                 # UI components, Leaflet map, simulation panels
 ├── lib/
-│   ├── ml/                     # ONNX inference layer & ML services
-│   ├── physics/                # Thermodynamic heat index & spatial heat diffusion
-│   ├── services/               # Geocoding (Nominatim) & grid cell services
-│   ├── supabase/               # Supabase database client & schema
-│   └── types/                  # Single source of truth TypeScript contracts
-├── llm/                        # Python LLM explanation service & safety validators
-│   ├── config.py
-│   ├── schemas.py              # Pydantic input/output schemas
-│   ├── validators.py           # Anti-hallucination & injection guards
-│   └── service.py              # Explanation orchestrator
-├── public/models/              # Trained ONNX risk model & feature importance metadata
-├── scripts/                    # ML training & Python test scripts
-├── supabase/schema.sql         # PostgreSQL database schema
-└── vercel.json                 # Vercel deployment configuration
+│   ├── main.dart               # Main Flutter app entry point & dark theme setup
+│   ├── models/
+│   │   ├── ward.dart           # Ward & GeoJSON polygon contracts in Dart
+│   │   └── risk_data.dart      # Weather, Grid, Vulnerability, and Risk prediction models
+│   ├── physics/
+│   │   ├── heat_index.dart     # NWS Rothfusz heat index calculator (Dart)
+│   │   └── heat_diffusion.dart # Spatial heat diffusion smoothing algorithm (Dart)
+│   ├── services/
+│   │   ├── geocoding_service.dart # Nominatim OpenStreetMap search & reverse geocoding
+│   │   ├── grid_service.dart     # Geospatial grid indexing & bounding cell service
+│   │   ├── mock_data_service.dart # Full catalog for 20 Delhi wards & 12 Chennai wards
+│   │   └── ml_service.dart        # Risk scoring & What-If scenario simulation engine
+│   ├── views/
+│   │   └── dashboard_view.dart # Command-center dashboard view
+│   └── widgets/
+│       ├── header_widget.dart     # Live telemetry status bar
+│       ├── ward_list_widget.dart  # Searchable ward sidebar with risk badges
+│       ├── ward_detail_widget.dart# Comprehensive heat & grid metric breakdown
+│       ├── risk_map_widget.dart   # Interactive GIS map widget (flutter_map)
+│       └── simulation_widget.dart # What-If heatwave slider panel
+├── web/                        # Flutter Web entry point & assets
+├── windows/                    # Windows Native Runner
+├── pubspec.yaml                # Dart / Flutter dependencies & asset configuration
+└── README.md
 ```
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Flutter / Dart)
 
-### 1. Web Dashboard (Next.js)
+### 1. Run Flutter Web App
 ```bash
-npm install
-npm run dev
+flutter pub get
+flutter run -d chrome
 ```
-Open **http://localhost:3000** in your browser.
 
-### 2. Python ML & LLM Engine
+### 2. Build Production Web Bundle
 ```bash
-# Train model & export ONNX
-python scripts/train_model.py
-
-# Verify model inference
-python scripts/test_inference.py
-
-# Run LLM layer unit tests
-python llm/tests/run_tests.py
+flutter build web
 ```
 
 ---
 
-## 🛡️ Key Features & Calibration
-
-- **Thermodynamic Heat Index**: Calculated using the NOAA National Weather Service (NWS) Rothfusz regression model.
-- **Spatial Heat Diffusion Engine**: Mathematical discrete grid smoothing weighted by spatial distance and relative ward population density.
-- **Data Provenance**: All metrics bounded to verified IMD/MoHFW heatwave statistics.
-
----
-
-**Built with ❤️ for climate resilience.**
-
+**Built with Dart & Flutter for climate resilience.**
