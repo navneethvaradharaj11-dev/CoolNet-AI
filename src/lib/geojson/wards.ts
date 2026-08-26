@@ -1,5 +1,20 @@
-<<<<<<< HEAD
 import { Ward } from '@/lib/types';
+
+export interface WardDefinition {
+  wardId: string;
+  wardName: string;
+  zone: string;
+  population: number;
+  areaSqKm: number;
+  populationDensity: number;
+  baselineVulnerabilityIndex: number;
+  coordinates: [number, number];
+  criticalFacilities: {
+    hospitals: number;
+    coolingCenters: number;
+    elderlyCareCenters: number;
+  };
+}
 
 const W: Ward[] = [
   { id: 'ward-01', name: 'Ward 1', population: 45200, areaSqKm: 4.2, center: [28.6315, 77.2220], geometry: { type: 'Polygon', coordinates: [[[28.634,77.214],[28.636,77.224],[28.633,77.230],[28.629,77.226],[28.628,77.218],[28.634,77.214]]] } },
@@ -23,44 +38,6 @@ const W: Ward[] = [
   { id: 'ward-19', name: 'Ward 19', population: 58200, areaSqKm: 5.7, center: [28.6075, 77.2380], geometry: { type: 'Polygon', coordinates: [[[28.611,77.230],[28.616,77.230],[28.615,77.246],[28.611,77.250],[28.605,77.246],[28.604,77.236],[28.611,77.230]]] } },
   { id: 'ward-20', name: 'Ward 20', population: 40100, areaSqKm: 4.0, center: [28.6515, 77.2380], geometry: { type: 'Polygon', coordinates: [[[28.649,77.232],[28.655,77.232],[28.656,77.244],[28.652,77.248],[28.648,77.244],[28.649,77.232]]] } },
 ];
-
-export const WARDS: Ward[] = W;
-export const WARDS_GEOJSON: GeoJSON.FeatureCollection = {
-  type: 'FeatureCollection',
-  features: W.map(w => ({ type: 'Feature', properties: { wardId: w.id, name: w.name }, geometry: w.geometry })),
-};
-
-export function getWardById(id: string): (Ward & { baselineVulnerabilityIndex?: number; populationDensity?: number }) | undefined {
-  const found = W.find(w => w.id === id);
-  if (!found) return undefined;
-  return {
-    ...found,
-    populationDensity: Math.round(found.population / found.areaSqKm),
-    baselineVulnerabilityIndex: 0.65
-  };
-}
-
-=======
-/**
- * CoolNet AI - Ward Catalog & Spatial GeoJSON Metadata
- * Defines urban wards with demographic baseline, density, and vulnerability indices.
- */
-
-export interface WardDefinition {
-  wardId: string;
-  wardName: string;
-  zone: string;
-  population: number;
-  areaSqKm: number;
-  populationDensity: number; // people per sq km
-  baselineVulnerabilityIndex: number; // 0.0 - 1.0
-  coordinates: [number, number]; // [longitude, latitude]
-  criticalFacilities: {
-    hospitals: number;
-    coolingCenters: number;
-    elderlyCareCenters: number;
-  };
-}
 
 export const WARDS_DATA: WardDefinition[] = [
   {
@@ -197,7 +174,37 @@ export const WARDS_DATA: WardDefinition[] = [
   },
 ];
 
-export const getWardById = (wardId: string): WardDefinition | undefined => {
-  return WARDS_DATA.find((w) => w.wardId.toUpperCase() === wardId.toUpperCase());
+export const WARDS: Ward[] = W;
+export const WARDS_GEOJSON: GeoJSON.FeatureCollection = {
+  type: 'FeatureCollection',
+  features: W.map(w => ({ type: 'Feature', properties: { wardId: w.id, name: w.name }, geometry: w.geometry })),
 };
->>>>>>> origin/main
+
+export function getWardById(id: string): (Ward & { wardId?: string; wardName?: string; baselineVulnerabilityIndex?: number; populationDensity?: number }) | undefined {
+  const found = W.find(w => w.id === id || w.id.toUpperCase() === id.toUpperCase());
+  if (found) {
+    return {
+      ...found,
+      wardId: found.id,
+      wardName: found.name,
+      populationDensity: Math.round(found.population / found.areaSqKm),
+      baselineVulnerabilityIndex: 0.65
+    };
+  }
+  const def = WARDS_DATA.find((w) => w.wardId.toUpperCase() === id.toUpperCase());
+  if (def) {
+    return {
+      id: def.wardId,
+      name: def.wardName,
+      wardId: def.wardId,
+      wardName: def.wardName,
+      population: def.population,
+      areaSqKm: def.areaSqKm,
+      center: [def.coordinates[1], def.coordinates[0]],
+      geometry: { type: 'Polygon', coordinates: [] },
+      populationDensity: def.populationDensity,
+      baselineVulnerabilityIndex: def.baselineVulnerabilityIndex
+    };
+  }
+  return undefined;
+}
