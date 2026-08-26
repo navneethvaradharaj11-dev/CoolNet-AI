@@ -5,10 +5,6 @@ coolnet-ai-phase1/node_modules
 /.pnp
 .pnp.*
 .yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
 
 # testing
 /coverage
@@ -27,6 +23,7 @@ coolnet-ai-phase1/out/
 # misc
 .DS_Store
 *.pem
+Thumbs.db
 
 # debug
 npm-debug.log*
@@ -45,4 +42,14 @@ yarn-error.log*
 *.tsbuildinfo
 tsconfig.tsbuildinfo
 next-env.d.ts
+
+# Byte-compiled / Python / Virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.venv
+.vscode/
+.idea/
 

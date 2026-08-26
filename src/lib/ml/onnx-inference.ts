@@ -14,8 +14,12 @@ import {
 } from "./types";
 
 // Dynamic import for onnxruntime-web to support Next.js SSR & client hydration
+<<<<<<< HEAD
 // @ts-ignore
 let ortInstance: any = null;
+=======
+let ortInstance: typeof import("onnxruntime-web") | null = null;
+>>>>>>> origin/main
 let onnxSessionPromise: Promise<any> | null = null;
 
 const MODEL_PATH = "/models/coolnet_risk_model.onnx";
@@ -49,14 +53,20 @@ async function getInferenceSession(): Promise<any> {
   onnxSessionPromise = (async () => {
     try {
       if (!ortInstance) {
+<<<<<<< HEAD
         // @ts-ignore
+=======
+>>>>>>> origin/main
         ortInstance = await import("onnxruntime-web");
         // Configure WASM paths if needed
         ortInstance.env.wasm.numThreads = 1;
         ortInstance.env.wasm.simd = true;
       }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/main
       // Fetch model array buffer
       const response = await fetch(MODEL_PATH);
       if (!response.ok) {
