@@ -4,7 +4,10 @@
 
 A climate-risk decision-support platform that identifies vulnerable electrical grid wards, quantifies risk exposure, forecasts escalation patterns, and recommends preventive interventions. Built with AI/ML explainability, real ONNX client-side inference, and an LLM decision-support layer at its core.
 
+🚀 **Live Vercel Demo**: [https://coolnet-ai-phase1-theta.vercel.app](https://coolnet-ai-phase1-theta.vercel.app)
+
 ---
+
 
 ## 🎯 What It Does
 
