@@ -97,6 +97,21 @@ class TestBackendAPI(unittest.TestCase):
             self.assertIn("detail", data)
 
 
+    def test_cors_preflight_allows_vercel_preview(self):
+        headers = {
+            "Origin": "https://coolnet-ai-phase1-git-redesign-command-center-v2.vercel.app",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Content-Type",
+        }
+        resp = self.client.options("/api/predict", headers=headers)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(
+            resp.headers.get("access-control-allow-origin"),
+            "https://coolnet-ai-phase1-git-redesign-command-center-v2.vercel.app",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
+
 
