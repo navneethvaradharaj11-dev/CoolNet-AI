@@ -32,29 +32,29 @@ CoolNet AI is an AI-powered climate-resilience command center combining atmosphe
 ```mermaid
 flowchart TD
     subgraph Client ["Frontend Layer (Flutter Web 3.47.8)"]
-        UI[Command Center Dashboard]
-        Map[Spatial GIS Risk Map\n(ArcGIS Dark Canvas)]
-        Sim[What-If Scenario Lab]
-        Profile[Ward Intelligence Profile]
-        ClientService[MLService HTTP Client\n(Auto-Retry & Dynamic Base URL)]
+        UI["Command Center Dashboard"]
+        Map["Spatial GIS Risk Map<br/>(ArcGIS Dark Canvas)"]
+        Sim["What-If Scenario Lab"]
+        Profile["Ward Intelligence Profile"]
+        ClientService["MLService HTTP Client<br/>(Auto-Retry & Dynamic Base URL)"]
     end
 
     subgraph Hosting ["Edge Hosting (Vercel)"]
-        VercelCDN[Vercel CDN Edge Network]
-        BuildScript[scripts/build_vercel.sh\n(Automated Flutter SDK + Release)]
+        VercelCDN["Vercel CDN Edge Network"]
+        BuildScript["scripts/build_vercel.sh<br/>(Automated Flutter SDK + Release)"]
     end
 
     subgraph Backend ["Inference & Reasoning Layer (FastAPI on Render)"]
-        FastAPI[FastAPI ASGI Server]
-        CORSMiddleware[Hardened CORS Regex Filter\n(Vercel Projects + Localhost)]
-        ONNXEngine[ONNX Runtime Engine\ncoolnet_risk_model.onnx]
-        LLMService[Explainability Reasoning Engine\nPydantic + Anti-Hallucination]
-        FallbackEngine[Deterministic Rule-Based Fallback]
+        FastAPI["FastAPI ASGI Server"]
+        CORSMiddleware["Hardened CORS Regex Filter<br/>(Vercel Projects + Localhost)"]
+        ONNXEngine["ONNX Runtime Engine<br/>coolnet_risk_model.onnx"]
+        LLMService["Explainability Reasoning Engine<br/>Pydantic + Anti-Hallucination"]
+        FallbackEngine["Deterministic Rule-Based Fallback"]
     end
 
     subgraph Storage ["Artifacts & Database"]
-        ModelArtifacts[public/models/\nONNX Model & SHAP Feature Weights]
-        SupabaseDB[(Supabase PostgreSQL\nRow-Level Security & Audit Logs)]
+        ModelArtifacts["public/models/<br/>ONNX Model & SHAP Feature Weights"]
+        SupabaseDB[("Supabase PostgreSQL<br/>Row-Level Security & Audit Logs")]
     end
 
     VercelCDN --> UI
