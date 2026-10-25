@@ -8,12 +8,15 @@ import 'mock_data_service.dart';
 class MLService {
   /// Base URL configured via Flutter build-time environment (--dart-define=API_BASE_URL=...)
   /// In release builds, defaults to live Render backend; in debug mode, defaults to localhost.
-  static const String backendBaseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: bool.fromEnvironment('dart.vm.product')
-        ? 'https://coolnet-ai-backend.onrender.com'
-        : 'http://127.0.0.1:8000',
-  );
+  static const String _envBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '');
+  static String get backendBaseUrl {
+    if (_envBaseUrl.isNotEmpty &&
+        !_envBaseUrl.startsWith('http://localhost') &&
+        !_envBaseUrl.startsWith('http://127.0.0.1')) {
+      return _envBaseUrl;
+    }
+    return 'https://coolnet-ai-backend.onrender.com';
+  }
   static const Duration requestTimeout = Duration(seconds: 8);
 
   /// Checks whether the backend API is reachable and healthy.
