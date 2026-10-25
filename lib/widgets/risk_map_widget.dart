@@ -40,17 +40,17 @@ class RiskMapWidget extends StatelessWidget {
 
             Color fillColor;
             switch (risk.riskLevel) {
-              case RiskLevel.CRITICAL:
-                fillColor = const Color(0xFFEF4444);
+              case RiskLevel.critical:
+                fillColor = const Color(0xFFFB7185);
                 break;
-              case RiskLevel.HIGH:
+              case RiskLevel.high:
                 fillColor = const Color(0xFFF97316);
                 break;
-              case RiskLevel.MODERATE:
-                fillColor = const Color(0xFFEAB308);
+              case RiskLevel.moderate:
+                fillColor = const Color(0xFFFBBF24);
                 break;
-              case RiskLevel.LOW:
-                fillColor = const Color(0xFF10B981);
+              case RiskLevel.low:
+                fillColor = const Color(0xFF2DD4BF);
                 break;
             }
 
@@ -73,28 +73,28 @@ class RiskMapWidget extends StatelessWidget {
 
             Color badgeColor;
             switch (risk.riskLevel) {
-              case RiskLevel.CRITICAL:
-                badgeColor = const Color(0xFFEF4444);
+              case RiskLevel.critical:
+                badgeColor = const Color(0xFFFB7185);
                 break;
-              case RiskLevel.HIGH:
+              case RiskLevel.high:
                 badgeColor = const Color(0xFFF97316);
                 break;
-              case RiskLevel.MODERATE:
-                badgeColor = const Color(0xFFEAB308);
+              case RiskLevel.moderate:
+                badgeColor = const Color(0xFFFBBF24);
                 break;
-              case RiskLevel.LOW:
-                badgeColor = const Color(0xFF10B981);
+              case RiskLevel.low:
+                badgeColor = const Color(0xFF2DD4BF);
                 break;
             }
 
             return Marker(
               point: LatLng(w.center[0], w.center[1]),
-              width: 90,
-              height: 40,
+              width: 96,
+              height: 48,
               child: GestureDetector(
                 onTap: () => onSelectWard(w),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                   decoration: BoxDecoration(
                     color: const Color(0xFF0F172A),
                     borderRadius: BorderRadius.circular(6),
@@ -110,20 +110,24 @@ class RiskMapWidget extends StatelessWidget {
                       )
                     ],
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        w.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        'Risk: ${risk.compoundRiskScore}',
-                        style: TextStyle(color: badgeColor, fontSize: 9, fontWeight: FontWeight.bold),
-                      ),
-                    ],
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          w.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Risk: ${risk.compoundRiskScore.toStringAsFixed(1)}',
+                          style: TextStyle(color: badgeColor, fontSize: 9, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
