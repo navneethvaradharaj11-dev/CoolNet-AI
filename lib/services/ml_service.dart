@@ -14,13 +14,13 @@ class MLService {
         ? 'https://coolnet-ai-backend.onrender.com'
         : 'http://127.0.0.1:8000',
   );
-  static const Duration requestTimeout = Duration(milliseconds: 2500);
+  static const Duration requestTimeout = Duration(seconds: 8);
 
   /// Checks whether the backend API is reachable and healthy.
   static Future<bool> checkBackendHealth() async {
     try {
       final uri = Uri.parse('$backendBaseUrl/health');
-      final response = await http.get(uri).timeout(const Duration(milliseconds: 1500));
+      final response = await http.get(uri).timeout(const Duration(seconds: 6));
       return response.statusCode == 200;
     } catch (_) {
       return false;
@@ -131,7 +131,7 @@ class MLService {
             headers: {'Content-Type': 'application/json'},
             body: payload,
           )
-          .timeout(const Duration(seconds: 3));
+          .timeout(const Duration(seconds: 8));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);

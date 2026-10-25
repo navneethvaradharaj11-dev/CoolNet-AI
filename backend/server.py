@@ -49,7 +49,8 @@ else:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allow_origins,
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    # Restrict regex to CoolNet AI project domains & preview branches on Vercel
+    allow_origin_regex=r"^https://coolnet-ai(-phase1)?(-[a-zA-Z0-9_\-]+)?\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],

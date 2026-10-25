@@ -17,6 +17,8 @@ class RiskMapWidget extends StatelessWidget {
     required this.onSelectWard,
   });
 
+  static const String cartoApiKey = String.fromEnvironment('CARTO_API_KEY', defaultValue: '');
+
   @override
   Widget build(BuildContext context) {
     final centerLat = selectedWard != null ? selectedWard!.center[0] : 28.6315;
@@ -29,8 +31,10 @@ class RiskMapWidget extends StatelessWidget {
       ),
       children: [
         TileLayer(
-          urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-          subdomains: const ['a', 'b', 'c', 'd'],
+          urlTemplate: cartoApiKey.isNotEmpty
+              ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=$cartoApiKey'
+              : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+          subdomains: cartoApiKey.isNotEmpty ? const ['a', 'b', 'c', 'd'] : const [],
           userAgentPackageName: 'com.coolnetai.app',
         ),
         PolygonLayer(

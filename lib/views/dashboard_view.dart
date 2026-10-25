@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/ward.dart';
 import '../services/ml_service.dart';
@@ -19,6 +20,8 @@ class DashboardView extends StatefulWidget {
 class _DashboardViewState extends State<DashboardView> {
   Ward? _selectedWard;
   bool _isBackendConnected = false;
+  Timer? _healthCheckTimer;
+  int _connectionAttempt = 0;
 
   @override
   void initState() {
@@ -29,10 +32,26 @@ class _DashboardViewState extends State<DashboardView> {
     _checkBackendConnection();
   }
 
+  @override
+  void dispose() {
+    _healthCheckTimer?.cancel();
+    super.dispose();
+  }
+
   Future<void> _checkBackendConnection() async {
     final connected = await MLService.checkBackendHealth();
-    if (mounted) {
-      setState(() => _isBackendConnected = connected);
+    if (!mounted) return;
+    setState(() => _isBackendConnected = connected);
+
+    // If initial check fails, retry to handle cold starts (e.g. Render spin-up)
+    if (!connected && _connectionAttempt < 4) {
+      _connectionAttempt++;
+      _healthCheckTimer?.cancel();
+      _healthCheckTimer = Timer(Duration(seconds: 2 * _connectionAttempt), () {
+        if (mounted && !_isBackendConnected) {
+          _checkBackendConnection();
+        }
+      });
     }
   }
 
@@ -127,7 +146,10 @@ class _DashboardViewState extends State<DashboardView> {
         if (_selectedWard != null)
           SizedBox(
             width: 352,
-            child: WardDetailWidget(ward: _selectedWard!),
+            child: WardDetailWidget(
+              key: ValueKey('${_selectedWard!.id}-$_isBackendConnected'),
+              ward: _selectedWard!,
+            ),
           ),
       ],
     );
@@ -167,7 +189,11 @@ class _DashboardViewState extends State<DashboardView> {
                 if (_selectedWard != null) SimulationWidget(ward: _selectedWard!),
                 if (_selectedWard != null) ...[
                   const SizedBox(height: 12),
-                  WardDetailWidget(ward: _selectedWard!, embedded: true),
+                  WardDetailWidget(
+                    key: ValueKey('${_selectedWard!.id}-$_isBackendConnected'),
+                    ward: _selectedWard!,
+                    embedded: true,
+                  ),
                 ],
               ],
             ),
@@ -208,7 +234,11 @@ class _DashboardViewState extends State<DashboardView> {
             const SizedBox(height: 12),
             SimulationWidget(ward: _selectedWard!),
             const SizedBox(height: 12),
-            WardDetailWidget(ward: _selectedWard!, embedded: true),
+            WardDetailWidget(
+              key: ValueKey('${_selectedWard!.id}-$_isBackendConnected'),
+              ward: _selectedWard!,
+              embedded: true,
+            ),
           ],
         ],
       ),

@@ -110,6 +110,18 @@ class TestBackendAPI(unittest.TestCase):
             "https://coolnet-ai-phase1-git-redesign-command-center-v2.vercel.app",
         )
 
+    def test_cors_preflight_rejects_untrusted_vercel_origin(self):
+        headers = {
+            "Origin": "https://malicious-site.vercel.app",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Content-Type",
+        }
+        resp = self.client.options("/api/predict", headers=headers)
+        self.assertNotEqual(
+            resp.headers.get("access-control-allow-origin"),
+            "https://malicious-site.vercel.app",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
