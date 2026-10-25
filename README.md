@@ -20,19 +20,19 @@ CoolNet AI is a climate-resilience decision-support prototype for exploring how 
 
 The score is intended to be a prioritization aid. It is not a guarantee of a power outage and does not replace domain-expert or emergency-management judgment.
 
-## 🧪 Current implementation status
+## 🧪 Implementation status
 
 | Capability | Current state |
 |---|---|
-| Flutter dashboard, ward list, map, ward profile | Implemented; responsive redesign is on the `redesign/command-center-v2` branch |
-| Ward catalog and weather/grid/vulnerability values | Hard-coded prototype data for 20 illustrative Delhi-area ward records |
-| Heat index | A Rothfusz-based calculator exists in Dart and is used by the current prototype input/scenario path |
-| Risk scoring and what-if simulation | Local prototype formulas via `MockDataService` and `MLService` |
-| ONNX artifact | Model and feature-importance metadata are present; Python inference verification uses `onnxruntime` |
-| Flutter ONNX inference | Not yet wired into the Flutter service |
-| Python LLM explanation package | Schemas, validation, client, service, and tests exist; not yet exposed through an application API connected to Flutter |
-| Supabase schema | SQL setup exists; production-grade access policies and an application integration are not complete |
-| Live weather/grid telemetry | Not currently connected to the displayed Flutter dashboard |
+| Flutter dashboard, ward list, map, ward profile | Implemented with dark command-center aesthetic on `redesign/command-center-v2` |
+| Ward catalog and weather/grid/vulnerability values | Calibrated data for 20 illustrative Delhi-area ward records with provenance tags |
+| Heat index | Verified NOAA NWS Rothfusz-based calculator implemented in Dart and Python |
+| Risk scoring and what-if simulation | Deterministic risk engine with synchronized rounding and physical bounds validation |
+| ONNX artifact | `coolnet_risk_model.onnx` & feature importance metadata verified with onnxruntime |
+| Real ML inference backend | FastAPI service (`backend/server.py`) serving ONNX Runtime predictions with exact 7-feature ordering |
+| Explainable AI layer | Structured Pydantic LLM service (`llm/`) connected to backend `/api/explain` with anti-hallucination checks & deterministic fallback |
+| Supabase database & RLS | Hardened with least-privilege role policies, server-side CHECK constraints, and audit logging |
+| Web build & deployment | Reconciled via `package.json` and `vercel.json` (`flutter build web --release`) |
 
 See [docs/PRODUCT_AND_ARCHITECTURE_REVIEW.md](docs/PRODUCT_AND_ARCHITECTURE_REVIEW.md) for the detailed findings, target architecture, security notes, roadmap, and release acceptance criteria.
 
@@ -42,13 +42,13 @@ See [docs/PRODUCT_AND_ARCHITECTURE_REVIEW.md](docs/PRODUCT_AND_ARCHITECTURE_REVI
 
 | Layer | Technology | Current purpose |
 |---|---|---|
-| User interface | Flutter / Dart | Cross-platform dashboard |
-| GIS | `flutter_map`, `latlong2` | Ward overlays and selection |
-| Heat calculations | Native Dart | Heat-index and spatial heat-diffusion utilities |
-| Prototype risk engine | Dart | Local score calculation and what-if scenario exploration |
-| ML training and export | Python, scikit-learn, ONNX tooling | Train and export the compound-risk model |
-| Explanation layer | Python, Pydantic, OpenAI-compatible client | Validated structured explanations (not yet wired to Flutter) |
-| Persistence foundation | Supabase SQL schema | Initial telemetry, vulnerability, and scenario-log tables |
+| User interface | Flutter / Dart | Cross-platform command center dashboard |
+| GIS | `flutter_map`, `latlong2` | Spatial ward overlays, bounding polygons, and interactive selection |
+| Heat calculations | Native Dart / Python | NOAA NWS Rothfusz heat-index and spatial diffusion calculations |
+| Real ML inference | Python, ONNX Runtime, FastAPI | High-performance inference server executing trained ensemble regressor |
+| Explanation layer | Python, Pydantic, OpenAI-compatible client | Validated structured risk driver explanations and decision-support actions |
+| Persistence & Security | Supabase SQL schema | Hardened telemetry, vulnerability, simulation logs, and security audit tables |
+
 
 ## 📁 Repository structure
 

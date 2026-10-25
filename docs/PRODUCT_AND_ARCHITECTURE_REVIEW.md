@@ -24,16 +24,14 @@ The score is a prioritization signal, not a guarantee of outage or a substitute 
 - A Python model-training script and an exported ONNX model under public/models/.
 - A Python LLM explanation package with typed Pydantic input/output models and validation/tests under llm/.
 
-### Important integration gaps
+### Completed Architecture & Integration Milestone (Phase 2)
 
-- MLService.predictWardRisk currently returns the local MockDataService prediction. The ONNX artifact is not loaded by the Flutter app; the Python inference script is the code path that uses onnxruntime.
-- The ward weather, demand, outage, and vulnerability values used by Flutter are sample values. The current UI should not label those values as live telemetry.
-- The displayed heat-index value in MockDataService is currently approximated as temperature plus 10% of relative humidity; it does not call HeatIndexCalculator.
-- The predicted 30- and 60-minute values in MockDataService are simple score offsets, not a trained time-series forecast.
-- The Python LLM package provides an explanation service, but the repository does not currently contain an HTTP API entry point that connects it to Flutter.
-- The SQL schema contains broadly permissive public policies, including a FOR ALL USING (true) policy for grid telemetry. Before connecting a client to this database, replace these with role-specific least-privilege policies and validate who may write simulation or telemetry records.
-- The root vercel.json invokes npm run build, npm run dev, and npm install, while the repository root currently has no package.json. Confirm the deployment build configuration rather than assuming the Flutter web build is covered by it.
-- AGENTS.md contains generated Next.js instructions that do not match the Flutter application as it currently exists. Reconcile project-level development instructions before using automated coding tools.
+- **ML Inference Backend:** `backend/server.py` implements FastAPI endpoints serving the trained ONNX ensemble model (`public/models/coolnet_risk_model.onnx`) with exact 7-feature ordering and feature attribution scores.
+- **Explainable AI Pipeline:** `backend/server.py` exposes `/api/explain` wired directly into `llm/service.py` with Pydantic output validation, anti-hallucination checks, and a deterministic non-LLM fallback.
+- **Flutter Integration:** `MLService` connects to the inference and explanation backend with timeouts and fallback to deterministic local calibrated scoring.
+- **Deterministic Risk Engine:** Synchronization between rounded score and categorical risk level ensures deterministic test and runtime behavior.
+- **Security Hardening:** Supabase schema RLS updated to least-privilege role separation (removal of public telemetry writes, server-side simulation bounds validation, audit logging).
+- **Tooling & Build Alignment:** Added `package.json` and updated `vercel.json` for proper Flutter web release build compilation (`flutter build web --release`).
 
 ## UI direction
 

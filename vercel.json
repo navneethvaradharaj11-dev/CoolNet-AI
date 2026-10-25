@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install"
+  "buildCommand": "flutter build web --release",
+  "outputDirectory": "build/web",
+  "cleanUrls": true
 }

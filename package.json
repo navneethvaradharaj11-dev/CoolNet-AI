@@ -1,0 +1,11 @@
+{
+  "name": "coolnet-ai",
+  "version": "1.0.0",
+  "description": "CoolNet AI - Compound Heat & Grid Risk Intelligence Platform",
+  "private": true,
+  "scripts": {
+    "build": "flutter build web --release",
+    "analyze": "flutter analyze",
+    "test": "flutter test"
+  }
+}
