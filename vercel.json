@@ -1,6 +1,9 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
   "buildCommand": "bash scripts/build_vercel.sh",
   "outputDirectory": "build/web",
+  "installCommand": "echo 'Skipping npm install for Flutter project'",
   "cleanUrls": true,
   "rewrites": [
     {
