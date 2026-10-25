@@ -1,82 +1,205 @@
 # 🌐 CoolNet AI — Urban Climate & Grid Resilience Intelligence
 
+[![Flutter Web](https://img.shields.io/badge/Flutter_Web-3.47.8-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![ONNX Runtime](https://img.shields.io/badge/ONNX_Runtime-1.19+-005CED?logo=onnx&logoColor=white)](https://onnxruntime.ai)
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployed-black?logo=vercel&logoColor=white)](https://coolnet-ai-phase1-theta.vercel.app/)
+[![Render Backend](https://img.shields.io/badge/Render-Live-46E3B7?logo=render&logoColor=black)](https://coolnet-ai-backend.onrender.com/health)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 CoolNet AI is an AI-powered climate-resilience command center combining atmospheric heat stress, electrical grid vulnerability, and socioeconomic susceptibility into spatial ward-level compound risk intelligence.
 
-> **⚠️ Prototype & Data Disclosure:** The application currently runs on calibrated sample demographic, meteorological, and grid proxy data for Delhi wards. Predictions from the ONNX model and the local prototype engine represent calibrated simulations for urban resilience planning, **not real-time utility SCADA telemetry, outage guarantees, or emergency evacuation alerts**.
+🚀 **Live Production Dashboard**: [https://coolnet-ai-phase1-theta.vercel.app/](https://coolnet-ai-phase1-theta.vercel.app/)  
+⚡ **Live Backend Service**: [https://coolnet-ai-backend.onrender.com](https://coolnet-ai-backend.onrender.com) ([Health Check](https://coolnet-ai-backend.onrender.com/health) | [Swagger API Docs](https://coolnet-ai-backend.onrender.com/docs))
+
+> **⚠️ Prototype & Data Disclosure:** The application currently operates with calibrated demographic, meteorological, and grid proxy data for Delhi municipal wards. Predictions from the ONNX ensemble model and the local prototype engine represent calibrated simulations for urban resilience planning, **not real-time utility SCADA telemetry, outage guarantees, or emergency evacuation directives**.
 
 ---
 
-## 🏗️ Architecture
+## 🎯 Key Capabilities
+
+- **Spatial Compound Risk Mapping**: Interactive GIS map visualizing ward-level heat and grid vulnerability across Delhi using keyless ArcGIS Dark Gray Canvas tiles with zero watermarks.
+- **Real-Time ONNX Machine Learning**: Low-latency model inference powered by a `GradientBoostingRegressor` trained on meteorological, demographic, and grid indicators.
+- **Explainable AI (XAI)**: Factor attribution breakdown calculating percentage weights and contribution scores across Heat Index, Electricity Demand, Social Vulnerability, and Outage Probability.
+- **Interactive What-If Scenario Lab**: Dynamic simulation lab adjusting ambient temperature (+0°C to +5°C), grid demand (+0% to +30%), and cooling access (-20% to +20%) to observe immediate impact on ward risk profiles.
+- **Resilient Connectivity & Offline Fallback**: Automatic background retry polling and seamless graceful degradation to local deterministic scoring if the backend is waking from cold-start or unreachable.
+- **Anti-Hallucination Guardrails**: Multi-rule Pydantic validators enforcing numerical bounds, verifiable evidence grounding, and deterministic fallbacks.
+
+---
+
+## 🏗️ System Architecture
 
 ```mermaid
 flowchart TD
-    subgraph Frontend ["Client Layer (Flutter Web)"]
-        UI[Command Center UI]
-        Map[Interactive Spatial GIS Map]
+    subgraph Client ["Frontend Layer (Flutter Web 3.47.8)"]
+        UI[Command Center Dashboard]
+        Map[Spatial GIS Risk Map\n(ArcGIS Dark Canvas)]
         Sim[What-If Scenario Lab]
-        ExplainUI[Explainable AI Panel]
-        Client[MLService HTTP Client]
+        Profile[Ward Intelligence Profile]
+        ClientService[MLService HTTP Client\n(Auto-Retry & Dynamic Base URL)]
+    end
+
+    subgraph Hosting ["Edge Hosting (Vercel)"]
+        VercelCDN[Vercel CDN Edge Network]
+        BuildScript[scripts/build_vercel.sh\n(Automated Flutter SDK + Release)]
     end
 
     subgraph Backend ["Inference & Reasoning Layer (FastAPI on Render)"]
-        API[FastAPI Server]
-        ONNX[ONNX Runtime Engine\ncoolnet_risk_model.onnx]
-        LLM[Explainability Service\nPydantic + Anti-Hallucination]
-        Fallback[Deterministic Evidence Fallback]
+        FastAPI[FastAPI ASGI Server]
+        CORSMiddleware[Hardened CORS Regex Filter\n(Vercel Projects + Localhost)]
+        ONNXEngine[ONNX Runtime Engine\ncoolnet_risk_model.onnx]
+        LLMService[Explainability Reasoning Engine\nPydantic + Anti-Hallucination]
+        FallbackEngine[Deterministic Rule-Based Fallback]
     end
 
-    subgraph Data ["Data & Persistence Layer"]
-        Artifacts[public/models/\nEnsemble Regressor & SHAP Weights]
-        Supabase[(Supabase PostgreSQL\nHardened RLS + Audit Logs)]
+    subgraph Storage ["Artifacts & Database"]
+        ModelArtifacts[public/models/\nONNX Model & SHAP Feature Weights]
+        SupabaseDB[(Supabase PostgreSQL\nRow-Level Security & Audit Logs)]
     end
 
-    UI --> Client
+    VercelCDN --> UI
+    UI --> ClientService
     Map --> UI
-    Sim --> Client
-    ExplainUI --> Client
+    Sim --> ClientService
+    Profile --> UI
 
-    Client -- "POST /api/predict\n(Build-time API_BASE_URL)" --> API
-    Client -- "POST /api/explain" --> API
-    Client -. "Offline Fallback" .-> UI
+    ClientService -- "POST /api/predict" --> CORSMiddleware
+    ClientService -- "POST /api/explain" --> CORSMiddleware
+    ClientService -. "Network Offline Fallback" .-> UI
 
-    API --> ONNX
-    API --> LLM
-    LLM -. "Fallback if LLM offline" .-> Fallback
-    ONNX --> Artifacts
-    API -. "Optional telemetry" .-> Supabase
+    CORSMiddleware --> FastAPI
+    FastAPI --> ONNXEngine
+    FastAPI --> LLMService
+    LLMService -. "Fallback on Timeout/Error" .-> FallbackEngine
+    ONNXEngine --> ModelArtifacts
+    FastAPI -. "Telemetry & Audit Logs" .-> SupabaseDB
 ```
 
 ---
 
-## 🧪 Implementation & Verification Status
+## 📁 Repository Directory Structure
 
-| Component | Status | Verification Detail |
-|---|---|---|
-| **Flutter Frontend** | ✅ Verified | Tested on Flutter 3.44.0 / 3.47.8 (Dart ^3.12.0); `flutter analyze` (0 issues), `flutter test` (9/9 passed). |
-| **Web Build Release** | ✅ Verified | Release bundle compiles cleanly via `flutter build web --release` into `build/web`. |
-| **FastAPI Backend** | ✅ Verified | `backend/server.py` with `/health`, `/api/predict`, `/api/explain` (5/5 unit tests pass). |
-| **ONNX Runtime ML** | ✅ Verified | `public/models/coolnet_risk_model.onnx` (109 KB); all 4 test inference scenarios verified. |
-| **7-Feature Ordering** | ✅ Verified | Strictly enforced: `[temperature, humidity, heat_index, electricity_demand, outage_probability, population_density, vulnerability_index]`. |
-| **Explainable AI** | ✅ Verified | 19 LLM unit tests pass (`llm/tests/run_tests.py`); anti-hallucination bounds & deterministic fallback. |
-| **Supabase Security** | ✅ Hardened | Explicit RLS policies (read-only telemetry, authenticated simulations), SQL check constraints, security audit logging. |
-| **Deployment Configs** | ✅ Configured | `render.yaml` (Render Web Service), `firebase.json` (Firebase Hosting SPA), `vercel.json` (Vercel). |
+```
+CoolNet-AI/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                 # GitHub Actions CI matrix (Flutter + Python + Security)
+│
+├── backend/                       # Python FastAPI Backend Service
+│   ├── __init__.py                # Module initialization
+│   ├── server.py                  # FastAPI app, endpoints (/health, /api/predict, /api/explain)
+│   └── tests/
+│       ├── __init__.py
+│       └── test_server.py         # Backend API, CORS, and ONNX unit tests (7 tests)
+│
+├── docs/
+│   └── PRODUCT_AND_ARCHITECTURE_REVIEW.md  # Architecture review, roadmaps, and audits
+│
+├── lib/                           # Flutter Frontend Application Source
+│   ├── main.dart                  # Application entry point & theme initialization
+│   ├── models/                    # Data models & schemas
+│   │   ├── risk_data.dart         # Risk assessment, predictions, factor contributions
+│   │   └── ward.dart              # Ward geographic and demographic metadata
+│   ├── physics/                   # Physical calculations & formulas
+│   │   ├── heat_diffusion.dart    # Spatial heat diffusion algorithms
+│   │   └── heat_index.dart        # NOAA NWS Rothfusz heat index equation
+│   ├── services/                  # Business logic & external API clients
+│   │   ├── geocoding_service.dart # Reverse geocoding and location resolution
+│   │   ├── grid_service.dart      # Grid stress and feeder calculations
+│   │   ├── ml_service.dart        # Backend HTTP client, retry polling, ONNX integration
+│   │   └── mock_data_service.dart # Calibrated sample ward dataset (20 Delhi wards)
+│   ├── views/
+│   │   └── dashboard_view.dart    # Main Command Center visual layout & state management
+│   └── widgets/                   # Modular UI components
+│       ├── header_widget.dart     # Navigation, active status pill, live backend polling
+│       ├── overview_metrics_widget.dart  # Top high-level summary telemetry cards
+│       ├── risk_map_widget.dart   # Interactive GIS map using ArcGIS Dark Canvas
+│       ├── simulation_widget.dart # What-If scenario laboratory with reactive sliders
+│       ├── ward_detail_widget.dart# Ward intelligence profile & factor contributions
+│       └── ward_list_widget.dart  # Sorted risk watchlist with ward search & filter
+│
+├── llm/                           # Anti-Hallucination Reasoning Layer
+│   ├── __init__.py
+│   ├── client.py                  # LLM provider integration client
+│   ├── config.py                  # LLM hyperparameters and environment settings
+│   ├── exceptions.py              # Custom validation & safety exceptions
+│   ├── prompts.py                 # Grounded explanation system prompts
+│   ├── schemas.py                 # Pydantic input and output contracts
+│   ├── service.py                 # Structured reasoning orchestrator
+│   ├── tests/
+│   │   ├── __init__.py
+│   │   ├── run_tests.py           # LLM test runner
+│   │   └── test_validation.py     # 19 anti-hallucination unit tests
+│   └── validators.py              # Strict bounds checking and validation logic
+│
+├── public/
+│   └── models/                    # ML Model Artifacts & Metadata
+│       ├── coolnet_risk_model.onnx        # Trained ONNX GradientBoostingRegressor (109 KB)
+│       └── feature_importances.json      # Precomputed SHAP feature weights
+│
+├── scripts/                       # Build & Machine Learning Utilities
+│   ├── build_vercel.sh            # Automated Flutter SDK installation & build script for Vercel
+│   ├── test_inference.py          # Standalone ONNX runtime test suite
+│   └── train_model.py             # Model training & ONNX export pipeline
+│
+├── supabase/                      # Database & Migration Scripts
+│   └── schema.sql                 # PostgreSQL schema with Row-Level Security (RLS) & audit logs
+│
+├── test/                          # Flutter Frontend Unit Tests
+│   ├── risk_engine_test.dart      # Risk calculations & deterministic formula tests (9 tests)
+│   └── widget_test.dart           # UI widget integration smoke tests
+│
+├── .env.example                   # Environment variable template
+├── firebase.json                  # Firebase Hosting SPA rewrite configuration
+├── package.json                   # Build tooling metadata
+├── pubspec.yaml                   # Flutter dependencies & Dart SDK constraints (^3.12.0)
+├── render.yaml                    # Render Web Service blueprint specification
+├── requirements.txt               # Pinned Python backend dependencies
+└── vercel.json                    # Vercel deployment configuration (build & output routes)
+```
 
 ---
 
-## 📋 Prerequisites
+## 🔢 7-Feature ML Input Vector Contract
 
-- **Flutter SDK**: 3.47.8 / 3.44.0 (Bundled Dart SDK ^3.12.0)
-- **Python**: 3.10, 3.11, or 3.12 (Virtual environment recommended)
-- **Node.js**: v18+ (if utilizing Firebase CLI or Vercel CLI)
+The ONNX model expects a strictly ordered 7-dimensional numeric feature vector:
+
+| Index | Feature Key | Data Type | Units | Description |
+|:---:|---|:---:|:---:|---|
+| `0` | `temperature` | `float32` | °C | Dry-bulb ambient air temperature |
+| `1` | `humidity` | `float32` | % | Relative humidity (0 - 100) |
+| `2` | `heat_index` | `float32` | °C | NOAA Rothfusz calculated apparent temperature |
+| `3` | `electricity_demand` | `float32` | % | Normalized electrical feeder load proxy |
+| `4` | `outage_probability` | `float32` | ratio | Estimated grid failure likelihood (0.0 - 1.0) |
+| `5` | `population_density` | `float32` | people/km²| Ward demographic density |
+| `6` | `vulnerability_index` | `float32` | index | Composite socioeconomic vulnerability score (0.0 - 1.0) |
 
 ---
 
-## 🚀 Local Development Setup
+## 🧪 Verification & Test Results (100% Pass)
 
-### 1. Backend Service (FastAPI + ONNX Runtime)
+| Test Suite | Scope | Result | Status |
+|---|---|:---:|:---:|
+| **Flutter Risk Engine** | `test/risk_engine_test.dart` | `9 / 9` passed | ✅ **100%** |
+| **Flutter Static Analysis** | `flutter analyze` | `0` issues | ✅ **100%** |
+| **Python Backend API** | `backend/tests/test_server.py` | `7 / 7` passed | ✅ **100%** |
+| **Explainable AI Reasoning**| `llm/tests/test_validation.py` | `19 / 19` passed | ✅ **100%** |
+| **ONNX Runtime Scenarios** | `scripts/test_inference.py` | `4 / 4` scenarios | ✅ **100%** |
+| **GitHub Actions CI** | Multi-OS build & test matrix | All jobs green | ✅ **100%** |
+
+---
+
+## 🛠️ Local Development Setup
+
+### 1. Prerequisites
+- **Flutter SDK**: 3.47.8 or 3.44.0+ (with Dart SDK `^3.12.0`)
+- **Python**: 3.10, 3.11, or 3.12
+- **Git**
+
+### 2. Backend Setup (FastAPI + ONNX Runtime)
 
 ```bash
-# 1. Create and activate a Python virtual environment
+# 1. Create and activate a virtual environment
 python -m venv .venv
 
 # On Linux/macOS:
@@ -84,158 +207,47 @@ source .venv/bin/activate
 # On Windows (PowerShell):
 .venv\Scripts\Activate.ps1
 
-# 2. Install pinned dependencies
+# 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Configure local environment
-copy .env.example .env
-
-# 4. Start the FastAPI development server
+# 3. Start development server
 uvicorn backend.server:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-The API will be accessible at:
-- Swagger Interactive Docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- Interactive Swagger Docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 - Health Check: [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
 
-### 2. Frontend Application (Flutter Web)
+### 3. Frontend Setup (Flutter Web)
 
 ```bash
-# 1. Install Flutter dependencies
+# 1. Fetch dependencies
 flutter pub get
 
-# 2. Run locally pointing to local backend
+# 2. Run in Chrome pointing to local backend
 flutter run -d chrome --dart-define=API_BASE_URL=http://127.0.0.1:8000
 
-# To run in offline/standalone prototype mode without backend:
-flutter run -d chrome
+# To run pointing to live Render backend:
+flutter run -d chrome --dart-define=API_BASE_URL=https://coolnet-ai-backend.onrender.com
 ```
 
 ---
 
-## ⚙️ Environment Variables Reference
+## 🚢 Production Deployment
 
-| Variable | Scope | Default | Description |
-|---|---|---|---|
-| `PORT` | Backend | `8000` | Port for the Uvicorn ASGI server. Assigned dynamically by Render. |
-| `MODEL_PATH` | Backend | `public/models/coolnet_risk_model.onnx` | Relative or absolute path to the ONNX model artifact. |
-| `META_PATH` | Backend | `public/models/feature_importances.json` | Path to JSON containing feature importance weights. |
-| `CORS_ORIGINS` | Backend | `*` (dev) / explicit URLs (prod) | Comma-separated list of allowed web origins. |
-| `LLM_API_KEY` | Backend | *empty* | Provider API key (Gemini / OpenAI compatible). Kept strictly server-side. |
-| `LLM_MODEL` | Backend | `gemini-2.5-flash` | Model identifier for the structured explanation service. |
-| `API_BASE_URL` | Flutter Web | `http://127.0.0.1:8000` | Build-time variable set via `--dart-define=API_BASE_URL=...`. |
+### Frontend (Vercel)
+The application is deployed to Vercel using `scripts/build_vercel.sh`:
+- **Build Command**: `bash scripts/build_vercel.sh`
+- **Output Directory**: `build/web`
+- The script automatically installs Flutter 3.47.8 in the Vercel Linux container, executes `flutter pub get`, and compiles an optimized release bundle targeting the live Render backend.
 
----
-
-## 📡 API Endpoints & Request/Response Contracts
-
-### `GET /health`
-Returns service availability, model readiness, and version metadata.
-```json
-{
-  "status": "healthy",
-  "model_loaded": true,
-  "model_version": "1.0.0",
-  "model_type": "GradientBoostingRegressor (ONNX)",
-  "timestamp": "2026-10-25T13:00:00Z"
-}
-```
-
-### `POST /api/predict`
-Calculates compound risk score using the trained ONNX model.
-**Payload:**
-```json
-{
-  "ward_id": "ward-01",
-  "temperature": 41.5,
-  "humidity": 65.0,
-  "heat_index": 49.0,
-  "electricity_demand": 88.0,
-  "outage_probability": 0.55,
-  "population_density": 26000.0,
-  "vulnerability_index": 0.80
-}
-```
-**Response:**
-```json
-{
-  "ward_id": "ward-01",
-  "compound_risk_score": 78.4,
-  "risk_level": "CRITICAL",
-  "model_version": "1.0.0 (ONNX Ensemble)",
-  "is_model_inference": true,
-  "data_status": "validated_inference",
-  "feature_contributions": [
-    {
-      "feature": "heat_index",
-      "display_name": "Heat Index",
-      "value": 49.0,
-      "unit": "°C",
-      "importance_weight": 0.28,
-      "contribution_score": 24.5,
-      "description": "Combined thermal stress from heat and humidity"
-    }
-  ],
-  "timestamp": "2026-10-25T13:00:00Z"
-}
-```
-*Note: If the ONNX model is missing or incompatible, this endpoint safely returns HTTP 503 instead of fabricating a result.*
-
-### `POST /api/explain`
-Generates structured, evidence-grounded risk drivers and recommendations.
+### Backend (Render)
+The FastAPI backend runs as a Render Web Service specified via `render.yaml`:
+- **Build Command**: `pip install -r requirements.txt`
+- **Start Command**: `uvicorn backend.server:app --host 0.0.0.0 --port $PORT`
+- **CORS Protection**: Hardened regex allows `coolnet-ai*.vercel.app` and localhost dev ports while rejecting untrusted domains.
 
 ---
 
-## 🧪 Testing Commands
+## 📜 License
 
-```bash
-# 1. Run Flutter unit & widget tests
-flutter test
-
-# 2. Run Flutter static analysis
-flutter analyze
-
-# 3. Run Python Backend API unit tests
-.venv/bin/python -m unittest backend/tests/test_server.py
-
-# 4. Run Explainable AI Reasoning tests
-.venv/bin/python llm/tests/run_tests.py
-
-# 5. Run Real ML ONNX inference verification
-.venv/bin/python scripts/test_inference.py
-```
-
----
-
-## 🚢 Production Deployment Checklist
-
-### Step 1: Deploy Backend to Render
-1. Connect the GitHub repository `CoolNet-AI` to [Render](https://dashboard.render.com).
-2. Choose **New Web Service** and select `render.yaml` (Blueprint), or manually configure:
-   - **Environment**: Python
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `uvicorn backend.server:app --host 0.0.0.0 --port $PORT`
-   - **Health Check Path**: `/health`
-3. Add Environment Variables in Render Dashboard:
-   - `CORS_ORIGINS`: `https://<your-app>.web.app,https://<your-app>.firebaseapp.com`
-   - `LLM_API_KEY`: *(Your private API key)*
-4. Note your deployed Render service URL (e.g., `https://coolnet-backend.onrender.com`).
-
-### Step 2: Deploy Frontend to Firebase Hosting (or Vercel)
-1. Build the Flutter Web release bundle pointing to your live Render backend:
-   ```bash
-   flutter build web --release --dart-define=API_BASE_URL=https://<your-render-url>.onrender.com
-   ```
-2. Deploy via Firebase CLI:
-   ```bash
-   npx -y firebase-tools deploy --only hosting
-   ```
-   *(Or for Vercel, push to branch or deploy `build/web` using `vercel deploy --prebuilt`)*
-
----
-
-## 🛡️ Security & Privacy Constraints
-
-- **Zero Client Credentials:** No database service-role keys or LLM provider API keys are compiled into the Flutter Web bundle.
-- **Strict Input Validation:** Both backend endpoints and the Supabase database enforce numeric boundary checks preventing NaN, overflow, and SQL injection.
-- **Fail-Safe Offline Mode:** If network connection or backend services drop, the dashboard transitions to local calibrated prototype scoring and notifies the user.
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
