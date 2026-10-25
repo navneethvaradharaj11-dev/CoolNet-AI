@@ -78,5 +78,25 @@ class TestBackendAPI(unittest.TestCase):
         self.assertIn("data_quality_note", data)
 
 
+    def test_predict_model_missing_fails_safely(self):
+        from unittest.mock import patch
+        payload = {
+            "ward_id": "ward-01",
+            "temperature": 41.5,
+            "humidity": 65.0,
+            "heat_index": 49.0,
+            "electricity_demand": 88.0,
+            "outage_probability": 0.55,
+            "population_density": 26000.0,
+            "vulnerability_index": 0.80,
+        }
+        with patch("backend.server.session", None):
+            resp = self.client.post("/api/predict", json=payload)
+            self.assertEqual(resp.status_code, 503)
+            data = resp.json()
+            self.assertIn("detail", data)
+
+
 if __name__ == "__main__":
     unittest.main()
+

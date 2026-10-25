@@ -35,18 +35,34 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Enable CORS for Flutter web / desktop / local dev
+# Configure CORS using an explicit allowlist of deployed frontend origins
+cors_env = os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:3000,http://localhost:5000,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:5000,http://127.0.0.1:8000,http://127.0.0.1:8080,https://coolnet-ai.web.app,https://coolnet-ai.firebaseapp.com,https://coolnet-ai.vercel.app",
+)
+
+if cors_env.strip() == "*":
+    allow_origins = ["*"]
+else:
+    allow_origins = [origin.strip() for origin in cors_env.split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allow_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
 # Load ONNX model and metadata
-MODEL_PATH = os.path.join(REPO_ROOT, "public", "models", "coolnet_risk_model.onnx")
-META_PATH = os.path.join(REPO_ROOT, "public", "models", "feature_importances.json")
+MODEL_PATH = os.getenv(
+    "MODEL_PATH",
+    os.path.join(REPO_ROOT, "public", "models", "coolnet_risk_model.onnx"),
+)
+META_PATH = os.getenv(
+    "META_PATH",
+    os.path.join(REPO_ROOT, "public", "models", "feature_importances.json"),
+)
 
 session: Optional[ort.InferenceSession] = None
 model_meta: Dict[str, Any] = {}
@@ -241,23 +257,24 @@ def predict(req: PredictRequest) -> PredictResponse:
         req.vulnerability_index,
     ]], dtype=np.float32)
 
-    if session is not None:
-        try:
-            raw_score = float(session.run([output_name], {input_name: feature_vector})[0][0][0])
-            score = float(np.clip(raw_score, 0.0, 100.0))
-            is_model = True
-            model_ver = "1.0.0 (ONNX Ensemble)"
-        except Exception as exc:
-            logger.error("ONNX inference failed: %s; falling back to formula", exc)
-            score = (req.heat_index - 30.0) * 1.2 + req.electricity_demand * 0.35 + req.vulnerability_index * 25.0
-            score = float(np.clip(score, 0.0, 100.0))
-            is_model = False
-            model_ver = "1.0.0 (Fallback Prototype)"
-    else:
-        score = (req.heat_index - 30.0) * 1.2 + req.electricity_demand * 0.35 + req.vulnerability_index * 25.0
-        score = float(np.clip(score, 0.0, 100.0))
-        is_model = False
-        model_ver = "1.0.0 (Prototype Scoring)"
+    if session is None:
+        logger.error("Predict called but ONNX runtime session is unavailable.")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="ONNX model runtime session is unavailable. The prediction service requires the trained model artifact.",
+        )
+
+    try:
+        raw_score = float(session.run([output_name], {input_name: feature_vector})[0][0][0])
+        score = float(np.clip(raw_score, 0.0, 100.0))
+        is_model = True
+        model_ver = "1.0.0 (ONNX Ensemble)"
+    except Exception as exc:
+        logger.error("ONNX inference execution failed: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Model inference execution failed.",
+        )
 
     score_rounded = round(score, 1)
     risk_lvl = score_to_risk_level(score_rounded)
@@ -374,4 +391,6 @@ async def explain(req: ExplainRequest) -> LLMOutput:
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.server:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run("backend.server:app", host="0.0.0.0", port=port, reload=False)
+
