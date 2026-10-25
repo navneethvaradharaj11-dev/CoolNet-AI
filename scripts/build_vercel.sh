@@ -5,10 +5,10 @@ echo "=== CoolNet AI — Vercel Flutter Web Build Pipeline ==="
 
 # 1. Detect or provision Flutter SDK
 if ! command -v flutter &> /dev/null; then
-  echo "[1/5] Flutter SDK not detected in PATH. Provisioning Flutter 3.24.5..."
+  echo "[1/5] Flutter SDK not detected in PATH. Provisioning Flutter 3.47.8..."
   INSTALL_DIR="/tmp/flutter"
   if [ ! -d "$INSTALL_DIR" ]; then
-    git clone https://github.com/flutter/flutter.git --depth 1 -b 3.24.5 "$INSTALL_DIR"
+    git clone https://github.com/flutter/flutter.git --depth 1 -b 3.47.8 "$INSTALL_DIR"
   fi
   export PATH="$INSTALL_DIR/bin:$PATH"
 else

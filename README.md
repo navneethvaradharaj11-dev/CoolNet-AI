@@ -52,7 +52,7 @@ flowchart TD
 
 | Component | Status | Verification Detail |
 |---|---|---|
-| **Flutter Frontend** | ✅ Verified | Tested on Flutter 3.24.x / 3.44.0; `flutter analyze` (0 issues), `flutter test` (9/9 passed). |
+| **Flutter Frontend** | ✅ Verified | Tested on Flutter 3.44.0 / 3.47.8 (Dart ^3.12.0); `flutter analyze` (0 issues), `flutter test` (9/9 passed). |
 | **Web Build Release** | ✅ Verified | Release bundle compiles cleanly via `flutter build web --release` into `build/web`. |
 | **FastAPI Backend** | ✅ Verified | `backend/server.py` with `/health`, `/api/predict`, `/api/explain` (5/5 unit tests pass). |
 | **ONNX Runtime ML** | ✅ Verified | `public/models/coolnet_risk_model.onnx` (109 KB); all 4 test inference scenarios verified. |
@@ -65,7 +65,7 @@ flowchart TD
 
 ## 📋 Prerequisites
 
-- **Flutter SDK**: 3.24.x or higher (Dart 3.5.x+)
+- **Flutter SDK**: 3.47.8 / 3.44.0 (Bundled Dart SDK ^3.12.0)
 - **Python**: 3.10, 3.11, or 3.12 (Virtual environment recommended)
 - **Node.js**: v18+ (if utilizing Firebase CLI or Vercel CLI)
 
