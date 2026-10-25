@@ -1,4 +1,5 @@
 import '../models/risk_data.dart';
+import '../physics/heat_index.dart';
 import 'mock_data_service.dart';
 
 class MLService {
@@ -27,7 +28,7 @@ class MLService {
     final vuln = MockDataService.getVulnerabilityData(input.wardId);
 
     final double newTemp = weather.temperature + input.temperatureChange;
-    final double newHeatIndex = newTemp + (weather.humidity * 0.1);
+    final double newHeatIndex = HeatIndexCalculator.calculate(newTemp, weather.humidity);
     final double newDemand = (grid.electricityDemand + input.demandChange).clamp(0, 100);
     final double newGridStress = (newDemand * 0.85).clamp(0, 100);
     final double newCoolingAccess = (vuln.coolingAccess + input.coolingAccessChange).clamp(0, 100);
