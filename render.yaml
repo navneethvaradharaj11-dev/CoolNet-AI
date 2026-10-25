@@ -10,7 +10,7 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: CORS_ORIGINS
-        value: "https://coolnet-ai.web.app,https://coolnet-ai.firebaseapp.com,https://coolnet-ai.vercel.app,http://localhost:3000,http://localhost:8080"
+        value: "https://coolnet-ai-phase1-theta.vercel.app,https://coolnet-ai.web.app,https://coolnet-ai.firebaseapp.com,https://coolnet-ai.vercel.app,http://localhost:3000,http://localhost:8080"
       - key: MODEL_PATH
         value: public/models/coolnet_risk_model.onnx
       - key: META_PATH

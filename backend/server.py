@@ -38,7 +38,7 @@ app = FastAPI(
 # Configure CORS using an explicit allowlist of deployed frontend origins
 cors_env = os.getenv(
     "CORS_ORIGINS",
-    "http://localhost:3000,http://localhost:5000,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:5000,http://127.0.0.1:8000,http://127.0.0.1:8080,https://coolnet-ai.web.app,https://coolnet-ai.firebaseapp.com,https://coolnet-ai.vercel.app",
+    "https://coolnet-ai-phase1-theta.vercel.app,https://coolnet-ai.web.app,https://coolnet-ai.firebaseapp.com,https://coolnet-ai.vercel.app,http://localhost:3000,http://localhost:5000,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:5000,http://127.0.0.1:8000,http://127.0.0.1:8080",
 )
 
 if cors_env.strip() == "*":

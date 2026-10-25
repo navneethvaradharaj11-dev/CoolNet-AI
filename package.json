@@ -4,7 +4,7 @@
   "description": "CoolNet AI - Compound Heat & Grid Risk Intelligence Platform",
   "private": true,
   "scripts": {
-    "build": "flutter build web --release",
+    "build": "bash scripts/build_vercel.sh",
     "analyze": "flutter analyze",
     "test": "flutter test"
   }
