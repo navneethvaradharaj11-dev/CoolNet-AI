@@ -1,5 +1,6 @@
 import '../models/ward.dart';
 import '../models/risk_data.dart';
+import '../physics/heat_index.dart';
 
 class MockDataService {
   static final List<Ward> wards = [
@@ -34,7 +35,8 @@ class MockDataService {
     };
     final double temp = tempMap[wardId] ?? 38.0;
     final double humidity = 60.0;
-    final double hi = temp + (humidity * 0.1);
+    // Use the project's Rothfusz-based calculator rather than a rough temperature-plus-humidity proxy.
+    final double hi = HeatIndexCalculator.calculate(temp, humidity);
     return WeatherData(
       wardId: wardId,
       temperature: temp,
