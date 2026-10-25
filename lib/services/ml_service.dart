@@ -10,12 +10,12 @@ class MLService {
   /// In release builds, defaults to live Render backend; in debug mode, defaults to localhost.
   static const String _envBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '');
   static String get backendBaseUrl {
-    if (_envBaseUrl.isNotEmpty &&
-        !_envBaseUrl.startsWith('http://localhost') &&
-        !_envBaseUrl.startsWith('http://127.0.0.1')) {
+    if (_envBaseUrl.isNotEmpty) {
       return _envBaseUrl;
     }
-    return 'https://coolnet-ai-backend.onrender.com';
+    return const bool.fromEnvironment('dart.vm.product')
+        ? 'https://coolnet-ai-backend.onrender.com'
+        : 'http://127.0.0.1:8000';
   }
   static const Duration requestTimeout = Duration(seconds: 8);
 
