@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/ward.dart';
+import '../services/ml_service.dart';
 import '../services/mock_data_service.dart';
 import '../widgets/header_widget.dart';
 import '../widgets/overview_metrics_widget.dart';
@@ -17,6 +18,7 @@ class DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<DashboardView> {
   Ward? _selectedWard;
+  bool _isBackendConnected = false;
 
   @override
   void initState() {
@@ -24,15 +26,29 @@ class _DashboardViewState extends State<DashboardView> {
     if (MockDataService.wards.isNotEmpty) {
       _selectedWard = MockDataService.wards.first;
     }
+    _checkBackendConnection();
   }
 
-  void _handleRefresh() {
+  Future<void> _checkBackendConnection() async {
+    final connected = await MLService.checkBackendHealth();
+    if (mounted) {
+      setState(() => _isBackendConnected = connected);
+    }
+  }
+
+  Future<void> _handleRefresh() async {
+    await _checkBackendConnection();
+    if (!mounted) return;
     setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Demo view refreshed. This workspace currently uses sample inputs.'),
+      SnackBar(
+        content: Text(
+          _isBackendConnected
+              ? 'Backend API reachable (${MLService.backendBaseUrl}) · ONNX Model Active'
+              : 'Local prototype engine active · Backend unreachable (${MLService.backendBaseUrl})',
+        ),
         behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -48,7 +64,10 @@ class _DashboardViewState extends State<DashboardView> {
       body: SafeArea(
         child: Column(
           children: [
-            HeaderWidget(onRefresh: _handleRefresh),
+            HeaderWidget(
+              onRefresh: _handleRefresh,
+              isBackendConnected: _isBackendConnected,
+            ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
               child: OverviewMetricsWidget(wards: wards),

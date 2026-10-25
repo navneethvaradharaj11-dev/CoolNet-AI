@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 
 class HeaderWidget extends StatelessWidget {
   final VoidCallback onRefresh;
+  final bool isBackendConnected;
 
-  const HeaderWidget({super.key, required this.onRefresh});
+  const HeaderWidget({
+    super.key,
+    required this.onRefresh,
+    this.isBackendConnected = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -57,8 +62,14 @@ class HeaderWidget extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFBBF24).withAlpha(18),
-                    border: Border.all(color: const Color(0xFFFBBF24).withAlpha(60)),
+                    color: isBackendConnected
+                        ? const Color(0xFF10B981).withAlpha(18)
+                        : const Color(0xFFFBBF24).withAlpha(18),
+                    border: Border.all(
+                      color: isBackendConnected
+                          ? const Color(0xFF10B981).withAlpha(60)
+                          : const Color(0xFFFBBF24).withAlpha(60),
+                    ),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
@@ -67,12 +78,22 @@ class HeaderWidget extends StatelessWidget {
                       Container(
                         width: 6,
                         height: 6,
-                        decoration: const BoxDecoration(color: Color(0xFFFBBF24), shape: BoxShape.circle),
+                        decoration: BoxDecoration(
+                          color: isBackendConnected ? const Color(0xFF10B981) : const Color(0xFFFBBF24),
+                          shape: BoxShape.circle,
+                        ),
                       ),
                       const SizedBox(width: 7),
                       Text(
-                        compact ? 'DEMO DATA' : 'SIMULATED INPUTS',
-                        style: const TextStyle(color: Color(0xFFFDE68A), fontSize: 9, letterSpacing: 0.7, fontWeight: FontWeight.w800),
+                        isBackendConnected
+                            ? (compact ? 'LIVE API' : 'LIVE API · ONNX ACTIVE')
+                            : (compact ? 'OFFLINE' : 'LOCAL ENGINE · PROTOTYPE'),
+                        style: TextStyle(
+                          color: isBackendConnected ? const Color(0xFF6EE7B7) : const Color(0xFFFDE68A),
+                          fontSize: 9,
+                          letterSpacing: 0.7,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ],
                   ),

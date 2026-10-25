@@ -6,8 +6,23 @@ import '../physics/heat_index.dart';
 import 'mock_data_service.dart';
 
 class MLService {
-  static const String backendBaseUrl = 'http://127.0.0.1:8000';
-  static const Duration requestTimeout = Duration(milliseconds: 1500);
+  /// Base URL configured via Flutter build-time environment (--dart-define=API_BASE_URL=...)
+  static const String backendBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://127.0.0.1:8000',
+  );
+  static const Duration requestTimeout = Duration(milliseconds: 2500);
+
+  /// Checks whether the backend API is reachable and healthy.
+  static Future<bool> checkBackendHealth() async {
+    try {
+      final uri = Uri.parse('$backendBaseUrl/health');
+      final response = await http.get(uri).timeout(const Duration(milliseconds: 1500));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
 
   /// Performs risk prediction for a ward.
   /// Attempts to call the local ONNX backend first; if unavailable or timing out,
