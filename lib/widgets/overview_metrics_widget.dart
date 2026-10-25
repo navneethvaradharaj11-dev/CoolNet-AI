@@ -40,7 +40,7 @@ class OverviewMetricsWidget extends StatelessWidget {
         label: 'PEAK TEMPERATURE',
         value: '${peakTemperature.toStringAsFixed(1)}°C',
         note: 'Synthetic weather input',
-        icon: Icons.device_thermostat_rounded,
+        icon: Icons.thermostat_rounded,
         color: const Color(0xFFFBBF24),
       ),
       _MetricData(
