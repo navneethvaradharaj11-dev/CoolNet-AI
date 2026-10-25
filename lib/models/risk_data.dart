@@ -1,26 +1,44 @@
-enum RiskLevel { LOW, MODERATE, HIGH, CRITICAL }
+enum RiskLevel {
+  low,
+  moderate,
+  high,
+  critical;
 
-extension RiskLevelExtension on RiskLevel {
   String get name {
     switch (this) {
-      case RiskLevel.LOW:
+      case RiskLevel.low:
         return 'LOW';
-      case RiskLevel.MODERATE:
+      case RiskLevel.moderate:
         return 'MODERATE';
-      case RiskLevel.HIGH:
+      case RiskLevel.high:
         return 'HIGH';
-      case RiskLevel.CRITICAL:
+      case RiskLevel.critical:
         return 'CRITICAL';
     }
   }
 
   static RiskLevel fromScore(double score) {
-    if (score >= 70) return RiskLevel.CRITICAL;
-    if (score >= 50) return RiskLevel.HIGH;
-    if (score >= 30) return RiskLevel.MODERATE;
-    return RiskLevel.LOW;
+    if (score >= 70.0) return RiskLevel.critical;
+    if (score >= 50.0) return RiskLevel.high;
+    if (score >= 30.0) return RiskLevel.moderate;
+    return RiskLevel.low;
   }
+
+  // Backward-compatible constant aliases
+  // ignore: constant_identifier_names
+  static const RiskLevel LOW = RiskLevel.low;
+  // ignore: constant_identifier_names
+  static const RiskLevel MODERATE = RiskLevel.moderate;
+  // ignore: constant_identifier_names
+  static const RiskLevel HIGH = RiskLevel.high;
+  // ignore: constant_identifier_names
+  static const RiskLevel CRITICAL = RiskLevel.critical;
 }
+
+class RiskLevelExtension {
+  static RiskLevel fromScore(double score) => RiskLevel.fromScore(score);
+}
+
 
 class WeatherData {
   final String wardId;
@@ -87,6 +105,10 @@ class RiskPrediction {
   final double predicted30min;
   final double predicted60min;
   final String timestamp;
+  final bool isModelInference;
+  final String modelVersion;
+  final String dataStatus; // 'real', 'simulated', 'estimated', 'demo_mode'
+  final List<FeatureContribution> featureContributions;
 
   const RiskPrediction({
     required this.wardId,
@@ -95,7 +117,69 @@ class RiskPrediction {
     required this.predicted30min,
     required this.predicted60min,
     required this.timestamp,
+    this.isModelInference = false,
+    this.modelVersion = '1.0.0 (Prototype)',
+    this.dataStatus = 'simulated',
+    this.featureContributions = const [],
   });
+}
+
+class KeyFactorItem {
+  final String factor;
+  final double contribution;
+  final String explanation;
+
+  const KeyFactorItem({
+    required this.factor,
+    required this.contribution,
+    required this.explanation,
+  });
+
+  factory KeyFactorItem.fromJson(Map<String, dynamic> json) {
+    return KeyFactorItem(
+      factor: json['factor'] as String? ?? '',
+      contribution: (json['contribution'] as num?)?.toDouble() ?? 0.0,
+      explanation: json['explanation'] as String? ?? '',
+    );
+  }
+}
+
+class ExplanationResult {
+  final String summary;
+  final String riskInterpretation;
+  final List<KeyFactorItem> keyFactors;
+  final List<String> recommendedActions;
+  final String dataQualityNote;
+  final List<String> limitations;
+  final bool isLLMGenerated;
+
+  const ExplanationResult({
+    required this.summary,
+    required this.riskInterpretation,
+    required this.keyFactors,
+    required this.recommendedActions,
+    required this.dataQualityNote,
+    required this.limitations,
+    this.isLLMGenerated = false,
+  });
+
+  factory ExplanationResult.fromJson(Map<String, dynamic> json, {bool isLLM = true}) {
+    return ExplanationResult(
+      summary: json['summary'] as String? ?? '',
+      riskInterpretation: json['risk_interpretation'] as String? ?? '',
+      keyFactors: (json['key_factors'] as List? ?? [])
+          .map((item) => KeyFactorItem.fromJson(item as Map<String, dynamic>))
+          .toList(),
+      recommendedActions: (json['recommended_actions'] as List? ?? [])
+          .map((item) => item.toString())
+          .toList(),
+      dataQualityNote: json['data_quality_note'] as String? ?? '',
+      limitations: (json['limitations'] as List? ?? [])
+          .map((item) => item.toString())
+          .toList(),
+      isLLMGenerated: isLLM,
+    );
+  }
 }
 
 class RiskExplanation {

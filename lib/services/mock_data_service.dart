@@ -78,15 +78,52 @@ class MockDataService {
     final grid = getGridData(wardId);
     final vuln = getVulnerabilityData(wardId);
 
-    final double heatScore = (weather.heatIndex - 30) * 3;
-    final double score = (heatScore * 0.4 + grid.gridStress * 0.3 + vuln.vulnerabilityScore * 0.3).clamp(0, 100);
+    final double heatScore = ((weather.heatIndex - 30) * 3).clamp(0, 100);
+    final double rawScore = (heatScore * 0.4 + grid.gridStress * 0.3 + vuln.vulnerabilityScore * 0.3).clamp(0, 100);
+    final double score = double.parse(rawScore.toStringAsFixed(1));
+    final riskLevel = RiskLevelExtension.fromScore(score);
+
+    final contributions = [
+      FeatureContribution(
+        feature: 'heat_index',
+        displayName: 'Heat Index',
+        value: weather.heatIndex,
+        unit: '°C',
+        importanceWeight: 0.28,
+        contributionScore: double.parse((heatScore * 0.4).toStringAsFixed(1)),
+        description: 'Atmospheric thermal stress combined with humidity',
+      ),
+      FeatureContribution(
+        feature: 'electricity_demand',
+        displayName: 'Grid Demand',
+        value: grid.electricityDemand,
+        unit: '%',
+        importanceWeight: 0.22,
+        contributionScore: double.parse((grid.gridStress * 0.3).toStringAsFixed(1)),
+        description: 'Peak electrical consumption proxy',
+      ),
+      FeatureContribution(
+        feature: 'vulnerability_index',
+        displayName: 'Social Vulnerability',
+        value: vuln.vulnerabilityScore / 100.0,
+        unit: 'index',
+        importanceWeight: 0.18,
+        contributionScore: double.parse((vuln.vulnerabilityScore * 0.3).toStringAsFixed(1)),
+        description: 'Socioeconomic resilience & cooling disparity',
+      ),
+    ];
+
     return RiskPrediction(
       wardId: wardId,
-      compoundRiskScore: double.parse(score.toStringAsFixed(1)),
-      riskLevel: RiskLevelExtension.fromScore(score),
+      compoundRiskScore: score,
+      riskLevel: riskLevel,
       predicted30min: double.parse((score + 3).clamp(0, 100).toStringAsFixed(1)),
       predicted60min: double.parse((score + 7).clamp(0, 100).toStringAsFixed(1)),
       timestamp: DateTime.now().toIso8601String(),
+      isModelInference: false,
+      modelVersion: '1.0.0 (Calibrated Prototype)',
+      dataStatus: 'simulated',
+      featureContributions: contributions,
     );
   }
 }

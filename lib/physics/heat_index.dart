@@ -6,11 +6,11 @@ class HeatIndexCalculator {
   /// Calculates Heat Index in Celsius given temperature (°C) and relative humidity (%)
   static double calculate(double tempC, double humidityPct) {
     // Convert Celsius to Fahrenheit for NWS regression
-    final double T = (tempC * 9 / 5) + 32;
-    final double RH = humidityPct;
+    final double t = (tempC * 9 / 5) + 32;
+    final double rh = humidityPct.clamp(0.0, 100.0);
 
     // Simple Heat Index formula fallback for cool/moderate conditions
-    final double simpleHI = 0.5 * (T + 61.0 + ((T - 68.0) * 1.2) + (RH * 0.094));
+    final double simpleHI = 0.5 * (t + 61.0 + ((t - 68.0) * 1.2) + (rh * 0.094));
     if (simpleHI < 80) {
       final celsius = (simpleHI - 32) * 5 / 9;
       return double.parse(celsius.toStringAsFixed(1));
@@ -28,21 +28,21 @@ class HeatIndexCalculator {
     const double c9 = -0.00000199;
 
     double hi = c1 +
-        (c2 * T) +
-        (c3 * RH) +
-        (c4 * T * RH) +
-        (c5 * T * T) +
-        (c6 * RH * RH) +
-        (c7 * T * T * RH) +
-        (c8 * T * RH * RH) +
-        (c9 * T * T * RH * RH);
+        (c2 * t) +
+        (c3 * rh) +
+        (c4 * t * rh) +
+        (c5 * t * t) +
+        (c6 * rh * rh) +
+        (c7 * t * t * rh) +
+        (c8 * t * rh * rh) +
+        (c9 * t * t * rh * rh);
 
     // Apply boundary adjustments
-    if (RH < 13 && T >= 80 && T <= 112) {
-      final double adj = ((13 - RH) / 4) * sqrt((17 - (T - 95).abs()) / 17);
+    if (rh < 13 && t >= 80 && t <= 112) {
+      final double adj = ((13 - rh) / 4) * sqrt((17 - (t - 95).abs()) / 17);
       hi -= adj;
-    } else if (RH > 85 && T >= 80 && T <= 87) {
-      final double adj = ((RH - 85) / 10) * ((87 - T) / 5);
+    } else if (rh > 85 && t >= 80 && t <= 87) {
+      final double adj = ((rh - 85) / 10) * ((87 - t) / 5);
       hi += adj;
     }
 
