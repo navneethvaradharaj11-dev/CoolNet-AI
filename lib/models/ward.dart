@@ -6,6 +6,9 @@ class Ward {
   final List<double> center; // [latitude, longitude]
   final List<List<List<double>>> polygonCoordinates; // [[[lat, lng], ...]]
   final String zone;
+  final String city;
+  final String state;
+  final String corporation;
 
   const Ward({
     required this.id,
@@ -15,6 +18,9 @@ class Ward {
     required this.center,
     required this.polygonCoordinates,
     this.zone = 'Delhi NCT',
+    this.city = 'Delhi',
+    this.state = 'Delhi NCT',
+    this.corporation = 'MCD',
   });
 
   int get populationDensity => areaSqKm > 0 ? (population / areaSqKm).round() : 0;
@@ -32,6 +38,9 @@ class Ward {
               .toList())
           .toList(),
       zone: json['zone'] as String? ?? 'Delhi NCT',
+      city: json['city'] as String? ?? 'Delhi',
+      state: json['state'] as String? ?? 'Delhi NCT',
+      corporation: json['corporation'] as String? ?? 'MCD',
     );
   }
 
@@ -43,6 +52,9 @@ class Ward {
         'center': center,
         'polygonCoordinates': polygonCoordinates,
         'zone': zone,
+        'city': city,
+        'state': state,
+        'corporation': corporation,
       };
 }
 

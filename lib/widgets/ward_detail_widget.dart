@@ -89,7 +89,7 @@ class _WardDetailWidgetState extends State<WardDetailWidget> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${widget.ward.id}  ·  ${widget.ward.zone}  ·  ${widget.ward.areaSqKm} km²',
+                  '${widget.ward.id}  ·  ${widget.ward.corporation}  ·  ${widget.ward.zone}, ${widget.ward.city}  ·  ${widget.ward.areaSqKm} km²',
                   style: const TextStyle(color: Color(0xFF91A4BC), fontSize: 10),
                 ),
               ],

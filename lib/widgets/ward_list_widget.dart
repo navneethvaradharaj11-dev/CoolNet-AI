@@ -20,6 +20,7 @@ class WardListWidget extends StatefulWidget {
 class _WardListWidgetState extends State<WardListWidget> {
   String _searchQuery = '';
   String _selectedFilter = 'ALL'; // ALL, CRITICAL, HIGH, MEDIUM, LOW
+  String _selectedCity = 'ALL'; // ALL or specific city name
 
   @override
   Widget build(BuildContext context) {
@@ -29,11 +30,18 @@ class _WardListWidgetState extends State<WardListWidget> {
 
     final allWards = MockDataService.wards;
     final filtered = allWards.where((ward) {
+      if (_selectedCity != 'ALL' && ward.city != _selectedCity) {
+        return false;
+      }
+
       final query = _searchQuery.trim().toLowerCase();
       final matchesSearch = query.isEmpty ||
           ward.name.toLowerCase().contains(query) ||
           ward.id.toLowerCase().contains(query) ||
-          ward.zone.toLowerCase().contains(query);
+          ward.zone.toLowerCase().contains(query) ||
+          ward.city.toLowerCase().contains(query) ||
+          ward.state.toLowerCase().contains(query) ||
+          ward.corporation.toLowerCase().contains(query);
 
       if (!matchesSearch) return false;
 
@@ -75,7 +83,7 @@ class _WardListWidgetState extends State<WardListWidget> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        '${allWards.length} REAL WARDS',
+                        '${filtered.length} / ${allWards.length} WARDS',
                         style: const TextStyle(
                           color: Color(0xFF7DD3FC),
                           fontSize: 9,
@@ -88,7 +96,7 @@ class _WardListWidgetState extends State<WardListWidget> {
                 ),
                 const SizedBox(height: 3),
                 const Text(
-                  'Delhi NCT · Real administrative boundaries',
+                  'Pan-India · 10 Municipal Corporations (Live API)',
                   style: TextStyle(color: Color(0xFF71839B), fontSize: 10),
                 ),
                 const SizedBox(height: 10),
@@ -98,7 +106,7 @@ class _WardListWidgetState extends State<WardListWidget> {
                   onChanged: (value) => setState(() => _searchQuery = value),
                   style: const TextStyle(color: Color(0xFFE2E8F0), fontSize: 12),
                   decoration: InputDecoration(
-                    hintText: 'Search ward or zone...',
+                    hintText: 'Search ward, city, or corporation...',
                     prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF71839B), size: 17),
                     prefixIconConstraints: const BoxConstraints(minWidth: 36),
                     isDense: true,
@@ -110,6 +118,26 @@ class _WardListWidgetState extends State<WardListWidget> {
                   ),
                 ),
                 const SizedBox(height: 8),
+
+                // City Filter Chips (Horizontal scroll)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _cityChip('ALL', '🇮🇳 All India (${allWards.length})'),
+                      ...MockDataService.cities
+                          .where((c) => c.id != 'all')
+                          .map((city) {
+                        final count = allWards.where((w) => w.city == city.name).length;
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 5),
+                          child: _cityChip(city.name, '${city.name} ($count)'),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 6),
 
                 // Risk Filter Chips (ALL, CRITICAL, HIGH, MEDIUM, LOW)
                 SingleChildScrollView(
@@ -200,12 +228,34 @@ class _WardListWidgetState extends State<WardListWidget> {
                                             fontSize: 12,
                                           ),
                                         ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          '${ward.zone} · ${ward.population ~/ 1000}k pop · ${weather.temperature.toStringAsFixed(0)}°C',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(color: Color(0xFF71839B), fontSize: 9.5),
+                                        const SizedBox(height: 3),
+                                        Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF38BDF8).withAlpha(25),
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                '${ward.corporation} · ${ward.city}',
+                                                style: const TextStyle(
+                                                  color: Color(0xFF7DD3FC),
+                                                  fontSize: 8.5,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 5),
+                                            Expanded(
+                                              child: Text(
+                                                '${ward.zone} · ${ward.population ~/ 1000}k · ${weather.temperature.toStringAsFixed(0)}°C',
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(color: Color(0xFF71839B), fontSize: 9),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
@@ -265,6 +315,33 @@ class _WardListWidgetState extends State<WardListWidget> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _cityChip(String cityKey, String label) {
+    final isSelected = _selectedCity == cityKey;
+    return InkWell(
+      borderRadius: BorderRadius.circular(6),
+      onTap: () => setState(() => _selectedCity = cityKey),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF38BDF8).withAlpha(45) : const Color(0xFF101B2B),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF38BDF8) : const Color(0xFF23334A),
+            width: 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? const Color(0xFF7DD3FC) : const Color(0xFF94A3B8),
+            fontSize: 9,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+          ),
+        ),
       ),
     );
   }

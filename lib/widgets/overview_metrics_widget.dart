@@ -28,7 +28,7 @@ class OverviewMetricsWidget extends StatelessWidget {
       _MetricData(
         label: 'WARDS MONITORED',
         value: '${wards.length}',
-        note: 'Delhi NCT administrative wards',
+        note: 'Pan-India · 10 Municipal Corporations',
         icon: Icons.location_city_rounded,
         color: const Color(0xFF38BDF8),
       ),

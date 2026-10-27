@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/ward.dart';
+import '../models/risk_data.dart';
 import '../services/ml_service.dart';
 import '../services/mock_data_service.dart';
 import '../widgets/header_widget.dart';
@@ -339,7 +340,7 @@ class _DashboardViewState extends State<DashboardView> {
                 style: TextStyle(color: Color(0xFFF1F5F9), fontSize: 15, fontWeight: FontWeight.w700),
               ),
               Text(
-                compact ? 'Tap or pan map to explore real wards' : 'Delhi NCT Municipal Wards · Real OpenStreetMap & Live Meteorological API',
+                compact ? 'Tap or pan map to explore real wards' : 'Pan-India Municipal Wards · Real OpenStreetMap & Live Meteorological API',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: Color(0xFF71839B), fontSize: 11),
@@ -348,13 +349,27 @@ class _DashboardViewState extends State<DashboardView> {
           ),
         ),
         if (!compact) ...[
-          _legendItem('Critical (4)', const Color(0xFFFB7185)),
-          const SizedBox(width: 10),
-          _legendItem('High (5)', const Color(0xFFF97316)),
-          const SizedBox(width: 10),
-          _legendItem('Medium (6)', const Color(0xFFFBBF24)),
-          const SizedBox(width: 10),
-          _legendItem('Low (5)', const Color(0xFF2DD4BF)),
+          Builder(
+            builder: (context) {
+              final predictions = MockDataService.wards.map((w) => MockDataService.getRiskPrediction(w.id)).toList();
+              final c = predictions.where((p) => p.riskLevel == RiskLevel.critical).length;
+              final h = predictions.where((p) => p.riskLevel == RiskLevel.high).length;
+              final m = predictions.where((p) => p.riskLevel == RiskLevel.moderate).length;
+              final l = predictions.where((p) => p.riskLevel == RiskLevel.low).length;
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _legendItem('Critical ($c)', const Color(0xFFFB7185)),
+                  const SizedBox(width: 10),
+                  _legendItem('High ($h)', const Color(0xFFF97316)),
+                  const SizedBox(width: 10),
+                  _legendItem('Medium ($m)', const Color(0xFFFBBF24)),
+                  const SizedBox(width: 10),
+                  _legendItem('Low ($l)', const Color(0xFF2DD4BF)),
+                ],
+              );
+            },
+          ),
         ],
       ],
     );

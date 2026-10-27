@@ -30,7 +30,8 @@ class RiskMapWidget extends StatefulWidget {
 class _RiskMapWidgetState extends State<RiskMapWidget> {
   late final MapController _mapController;
   MapLayerType _selectedLayer = MapLayerType.darkCanvas;
-  final ValueNotifier<String> _cameraStatusNotifier = ValueNotifier<String>('· Zoom 12.0 · 28.63°N, 77.21°E');
+  String _selectedCityId = 'all';
+  final ValueNotifier<String> _cameraStatusNotifier = ValueNotifier<String>('· Pan-India · 10 Municipal Corporations');
   bool _isFullscreen = false;
 
   @override
@@ -58,16 +59,28 @@ class _RiskMapWidgetState extends State<RiskMapWidget> {
     final double targetZoom = _mapController.camera.zoom < 12.5 ? 13.0 : _mapController.camera.zoom;
     _mapController.move(target, targetZoom);
     _cameraStatusNotifier.value =
-        '· Zoom ${targetZoom.toStringAsFixed(1)} · ${target.latitude.toStringAsFixed(2)}°N, ${target.longitude.toStringAsFixed(2)}°E';
+        '· ${ward.name} (${ward.corporation} · ${ward.city}) · Zoom ${targetZoom.toStringAsFixed(1)}';
+  }
+
+  void _flyToCity(IndianCityInfo city) {
+    setState(() => _selectedCityId = city.id);
+    final target = LatLng(city.latitude, city.longitude);
+    _mapController.move(target, city.defaultZoom);
+    _cameraStatusNotifier.value =
+        '· ${city.name} (${city.corporation}) · Zoom ${city.defaultZoom.toStringAsFixed(1)}';
   }
 
   void _recenterOverview() {
     if (widget.selectedWard != null) {
       _flyToWard(widget.selectedWard!);
     } else {
-      const delhiCenter = LatLng(28.6250, 77.2100);
-      _mapController.move(delhiCenter, 11.8);
-      _cameraStatusNotifier.value = '· Zoom 11.8 · 28.63°N, 77.21°E';
+      final city = MockDataService.cities.firstWhere(
+        (c) => c.id == _selectedCityId,
+        orElse: () => MockDataService.cities.first,
+      );
+      _mapController.move(LatLng(city.latitude, city.longitude), city.defaultZoom);
+      _cameraStatusNotifier.value =
+          '· ${city.name} · Zoom ${city.defaultZoom.toStringAsFixed(1)}';
     }
   }
 
@@ -127,8 +140,9 @@ class _RiskMapWidgetState extends State<RiskMapWidget> {
   }
 
   Widget _buildMapCore() {
-    final centerLat = widget.selectedWard != null ? widget.selectedWard!.center[0] : 28.6250;
-    final centerLng = widget.selectedWard != null ? widget.selectedWard!.center[1] : 77.2100;
+    final centerLat = widget.selectedWard != null ? widget.selectedWard!.center[0] : 21.7679;
+    final centerLng = widget.selectedWard != null ? widget.selectedWard!.center[1] : 78.8718;
+    final initialZoom = widget.selectedWard != null ? 12.8 : 4.8;
 
     return Listener(
       behavior: HitTestBehavior.opaque,
@@ -140,8 +154,8 @@ class _RiskMapWidgetState extends State<RiskMapWidget> {
             mapController: _mapController,
             options: MapOptions(
               initialCenter: LatLng(centerLat, centerLng),
-              initialZoom: 12.0,
-              minZoom: 4.5,
+              initialZoom: initialZoom,
+              minZoom: 4.0,
               maxZoom: 18.5,
               interactionOptions: const InteractionOptions(
                 flags: InteractiveFlag.all,
@@ -461,6 +475,63 @@ class _RiskMapWidgetState extends State<RiskMapWidget> {
                     },
                   ),
                 ],
+              ),
+            ),
+          ),
+
+          // Pan-India City Quick-Jump Selector (Top Left below status badge)
+          Positioned(
+            top: 48,
+            left: 12,
+            right: 12,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0B1320).withAlpha(235),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFF334155)),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withAlpha(120), blurRadius: 6),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: MockDataService.cities.map((city) {
+                      final isSelected = _selectedCityId == city.id;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(6),
+                          onTap: () => _flyToCity(city),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? const Color(0xFF38BDF8).withAlpha(45)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: isSelected ? const Color(0xFF38BDF8) : Colors.transparent,
+                              ),
+                            ),
+                            child: Text(
+                              city.id == 'all' ? '🇮🇳 ${city.name}' : '${city.name} (${city.corporation})',
+                              style: TextStyle(
+                                color: isSelected ? const Color(0xFF7DD3FC) : const Color(0xFFCBD5E1),
+                                fontSize: 9.5,
+                                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
               ),
             ),
           ),
