@@ -100,10 +100,10 @@ class _DashboardViewState extends State<DashboardView> {
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  if (constraints.maxWidth >= 1360) {
+                  if (constraints.maxWidth >= 1080) {
                     return _buildDesktopLayout(wards);
                   }
-                  if (constraints.maxWidth >= 900) {
+                  if (constraints.maxWidth >= 720) {
                     return _buildTabletLayout(wards);
                   }
                   return _buildMobileLayout(wards);
@@ -166,22 +166,20 @@ class _DashboardViewState extends State<DashboardView> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(
-          width: 250,
+          width: 260,
           child: WardListWidget(
             selectedWard: _selectedWard,
             onSelectWard: _selectWard,
           ),
         ),
         Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(12),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 4, 10, 10),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildMapToolbar(compact: true),
-                const SizedBox(height: 10),
-                SizedBox(
-                  height: 440,
+                const SizedBox(height: 8),
+                Expanded(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: RiskMapWidget(
@@ -191,14 +189,16 @@ class _DashboardViewState extends State<DashboardView> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
-                if (_selectedWard != null) SimulationWidget(ward: _selectedWard!),
                 if (_selectedWard != null) ...[
-                  const SizedBox(height: 12),
-                  WardDetailWidget(
-                    key: ValueKey('${_selectedWard!.id}-$_isBackendConnected'),
-                    ward: _selectedWard!,
-                    embedded: true,
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 190,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: SingleChildScrollView(
+                        child: SimulationWidget(ward: _selectedWard!),
+                      ),
+                    ),
                   ),
                 ],
               ],
@@ -209,44 +209,110 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
+  int _mobileTab = 0; // 0: Map, 1: Wards, 2: Analysis
+
   Widget _buildMobileLayout(List<Ward> wards) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildMapToolbar(compact: true),
-          const SizedBox(height: 10),
-          SizedBox(
-            height: 340,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: RiskMapWidget(
-                wards: wards,
-                selectedWard: _selectedWard,
-                onSelectWard: _selectWard,
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F172A),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFF23334A)),
+            ),
+            child: Row(
+              children: [
+                _mobileTabButton(0, '🗺️ Live Map'),
+                _mobileTabButton(1, '📋 Watchlist'),
+                _mobileTabButton(2, '📊 Details'),
+              ],
+            ),
+          ),
+        ),
+        Expanded(
+          child: IndexedStack(
+            index: _mobileTab,
+            children: [
+              // Tab 0: 100% full height unconstrained interactive map
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  children: [
+                    _buildMapToolbar(compact: true),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: RiskMapWidget(
+                          wards: wards,
+                          selectedWard: _selectedWard,
+                          onSelectWard: (w) {
+                            _selectWard(w);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              // Tab 1: Ward Watchlist
+              WardListWidget(
+                selectedWard: _selectedWard,
+                onSelectWard: (w) {
+                  _selectWard(w);
+                  setState(() => _mobileTab = 0); // Jump to map upon ward selection
+                },
+              ),
+              // Tab 2: Ward Detail & Simulation
+              _selectedWard != null
+                  ? SingleChildScrollView(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        children: [
+                          SimulationWidget(ward: _selectedWard!),
+                          const SizedBox(height: 12),
+                          WardDetailWidget(
+                            key: ValueKey('${_selectedWard!.id}-$_isBackendConnected'),
+                            ward: _selectedWard!,
+                            embedded: true,
+                          ),
+                        ],
+                      ),
+                    )
+                  : const Center(
+                      child: Text('Select a ward to view details', style: TextStyle(color: Color(0xFF71839B))),
+                    ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _mobileTabButton(int index, String label) {
+    final isSelected = _mobileTab == index;
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(9),
+        onTap: () => setState(() => _mobileTab = index),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF38BDF8).withAlpha(40) : Colors.transparent,
+            borderRadius: BorderRadius.circular(9),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? const Color(0xFF7DD3FC) : const Color(0xFF94A3B8),
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 270,
-            child: WardListWidget(
-              selectedWard: _selectedWard,
-              onSelectWard: _selectWard,
-            ),
-          ),
-          if (_selectedWard != null) ...[
-            const SizedBox(height: 12),
-            SimulationWidget(ward: _selectedWard!),
-            const SizedBox(height: 12),
-            WardDetailWidget(
-              key: ValueKey('${_selectedWard!.id}-$_isBackendConnected'),
-              ward: _selectedWard!,
-              embedded: true,
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }
