@@ -1,11 +1,11 @@
 {
-    "name": "coolnet",
-    "short_name": "coolnet",
+    "name": "CoolNet AI · Urban Heat Risk Intelligence",
+    "short_name": "CoolNet AI",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#080F1C",
+    "theme_color": "#38BDF8",
+    "description": "Pan-India Real-Time Municipal Heatwave and Urban Risk Intelligence Platform.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
