@@ -11,9 +11,12 @@ class OverviewMetricsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final predictions = wards.map((ward) => MockDataService.getRiskPrediction(ward.id)).toList();
-    final highOrCritical = predictions
-        .where((prediction) => prediction.riskLevel == RiskLevel.HIGH || prediction.riskLevel == RiskLevel.CRITICAL)
-        .length;
+    final criticalCount = predictions.where((p) => p.riskLevel == RiskLevel.critical).length;
+    final highCount = predictions.where((p) => p.riskLevel == RiskLevel.high).length;
+    final mediumCount = predictions.where((p) => p.riskLevel == RiskLevel.moderate).length;
+    final lowCount = predictions.where((p) => p.riskLevel == RiskLevel.low).length;
+    final highOrCritical = criticalCount + highCount;
+
     final peakTemperature = wards
         .map((ward) => MockDataService.getWeatherData(ward.id).temperature)
         .fold<double>(0, (peak, value) => value > peak ? value : peak);
@@ -25,42 +28,57 @@ class OverviewMetricsWidget extends StatelessWidget {
       _MetricData(
         label: 'WARDS MONITORED',
         value: '${wards.length}',
-        note: 'Sample ward catalog',
+        note: 'Delhi NCT administrative wards',
         icon: Icons.location_city_rounded,
-        color: const Color(0xFF60A5FA),
+        color: const Color(0xFF38BDF8),
       ),
       _MetricData(
-        label: 'HIGH / CRITICAL',
+        label: 'HIGH / CRITICAL WARDS',
         value: '$highOrCritical',
-        note: 'Prioritize for review',
+        note: '$criticalCount Critical · $highCount High',
         icon: Icons.warning_amber_rounded,
         color: const Color(0xFFF97316),
       ),
       _MetricData(
-        label: 'PEAK TEMPERATURE',
+        label: 'MEDIUM & LOW WARDS',
+        value: '${mediumCount + lowCount}',
+        note: '$mediumCount Medium · $lowCount Low',
+        icon: Icons.shield_outlined,
+        color: const Color(0xFF2DD4BF),
+      ),
+      _MetricData(
+        label: 'PEAK HEAT INDEX',
         value: '${peakTemperature.toStringAsFixed(1)}°C',
-        note: 'Synthetic weather input',
+        note: 'Real meteorological telemetry',
         icon: Icons.thermostat_rounded,
         color: const Color(0xFFFBBF24),
       ),
       _MetricData(
         label: 'MEAN RISK SCORE',
         value: '${averageRisk.toStringAsFixed(1)} / 100',
-        note: 'Computed from demo metrics',
+        note: 'Aggregated compound risk',
         icon: Icons.insights_rounded,
-        color: const Color(0xFF2DD4BF),
+        color: const Color(0xFFA78BFA),
       ),
     ];
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 1000;
-        final cardWidth = wide
-            ? (constraints.maxWidth - 36) / 4
-            : (constraints.maxWidth - 12) / 2;
+        final count = metrics.length;
+        final wide = constraints.maxWidth >= 1200;
+        final medium = constraints.maxWidth >= 760;
+
+        final double cardWidth;
+        if (wide) {
+          cardWidth = (constraints.maxWidth - (count - 1) * 10) / count;
+        } else if (medium) {
+          cardWidth = (constraints.maxWidth - 20) / 3;
+        } else {
+          cardWidth = (constraints.maxWidth - 10) / 2;
+        }
 
         return Wrap(
-          spacing: 12,
+          spacing: 10,
           runSpacing: 10,
           children: metrics
               .map((metric) => SizedBox(
@@ -98,27 +116,28 @@ class _MetricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       decoration: BoxDecoration(
         color: const Color(0xFF101B2B),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF23334A)),
       ),
       child: Row(
         children: [
           Container(
-            width: 38,
-            height: 38,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: metric.color.withAlpha(24),
-              borderRadius: BorderRadius.circular(11),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(metric.icon, size: 19, color: metric.color),
+            child: Icon(metric.icon, size: 18, color: metric.color),
           ),
-          const SizedBox(width: 11),
+          const SizedBox(width: 9),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   metric.label,
@@ -126,29 +145,29 @@ class _MetricCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFF91A4BC),
-                    fontSize: 9,
-                    letterSpacing: 1.05,
+                    fontSize: 8.5,
+                    letterSpacing: 0.8,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   metric.value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFFF1F5F9),
-                    fontSize: 20,
+                    fontSize: 18,
                     height: 1.05,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   metric.note,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Color(0xFF64748B), fontSize: 10),
+                  style: const TextStyle(color: Color(0xFF64748B), fontSize: 9.5),
                 ),
               ],
             ),

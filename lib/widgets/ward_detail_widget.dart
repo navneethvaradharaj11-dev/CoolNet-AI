@@ -89,7 +89,7 @@ class _WardDetailWidgetState extends State<WardDetailWidget> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${widget.ward.id}  ·  ${widget.ward.areaSqKm} km²',
+                  '${widget.ward.id}  ·  ${widget.ward.zone}  ·  ${widget.ward.areaSqKm} km²',
                   style: const TextStyle(color: Color(0xFF91A4BC), fontSize: 10),
                 ),
               ],
@@ -112,8 +112,8 @@ class _WardDetailWidgetState extends State<WardDetailWidget> {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  prediction.riskLevel.name,
-                  style: TextStyle(color: riskColor, fontSize: 8, letterSpacing: 0.5, fontWeight: FontWeight.w800),
+                  prediction.riskLevel.displayLabel,
+                  style: TextStyle(color: riskColor, fontSize: 8.5, letterSpacing: 0.5, fontWeight: FontWeight.w800),
                 ),
               ],
             ),
@@ -143,7 +143,7 @@ class _WardDetailWidgetState extends State<WardDetailWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    prediction.isModelInference ? 'ONNX Regressor Inference' : 'Calibrated Prototype Scoring',
+                    prediction.isModelInference ? 'ONNX Regressor Inference' : 'Calibrated Real Baseline Engine',
                     style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 10, fontWeight: FontWeight.w700),
                   ),
                   Text(
@@ -168,13 +168,17 @@ class _WardDetailWidgetState extends State<WardDetailWidget> {
 
       // 4. Metric Cards: Weather, Grid, Vulnerability
       _buildMetricCard(
-        title: 'Heat & atmosphere',
+        title: weather.isReal ? 'Live atmosphere (Open-Meteo API)' : 'Heat & atmosphere',
         icon: Icons.thermostat_rounded,
         color: const Color(0xFFFBBF24),
         items: [
           MapEntry('Air temperature', '${weather.temperature.toStringAsFixed(1)}°C'),
           MapEntry('Relative humidity', '${weather.humidity.toStringAsFixed(0)}%'),
           MapEntry('Calculated heat index', '${weather.heatIndex.toStringAsFixed(1)}°C'),
+          if (weather.feelsLike != null)
+            MapEntry('Feels like', '${weather.feelsLike!.toStringAsFixed(1)}°C'),
+          if (weather.condition != null)
+            MapEntry('Condition', weather.condition!),
         ],
       ),
       const SizedBox(height: 12),

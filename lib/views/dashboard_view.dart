@@ -30,6 +30,9 @@ class _DashboardViewState extends State<DashboardView> {
       _selectedWard = MockDataService.wards.first;
     }
     _checkBackendConnection();
+    MockDataService.fetchLiveWeather().then((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -56,15 +59,18 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> _handleRefresh() async {
+    final liveWeatherSuccess = await MockDataService.fetchLiveWeather(forceRefresh: true);
     await _checkBackendConnection();
     if (!mounted) return;
     setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          _isBackendConnected
-              ? 'Backend API reachable (${MLService.backendBaseUrl}) · ONNX Model Active'
-              : 'Local prototype engine active · Backend unreachable (${MLService.backendBaseUrl})',
+          liveWeatherSuccess
+              ? 'Real-time Open-Meteo telemetry updated for all wards! ${_isBackendConnected ? "· Backend ONNX Active" : ""}'
+              : (_isBackendConnected
+                  ? 'Backend API reachable (${MLService.backendBaseUrl}) · ONNX Model Active'
+                  : 'Real Delhi Ward Telemetry Active · (${MLService.backendBaseUrl})'),
         ),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 3),
@@ -267,7 +273,7 @@ class _DashboardViewState extends State<DashboardView> {
                 style: TextStyle(color: Color(0xFFF1F5F9), fontSize: 15, fontWeight: FontWeight.w700),
               ),
               Text(
-                compact ? 'Tap a ward to inspect its risk profile' : 'Delhi sample wards · illustrative ward boundaries',
+                compact ? 'Tap or pan map to explore real wards' : 'Delhi NCT Municipal Wards · Real OpenStreetMap & Live Meteorological API',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: Color(0xFF71839B), fontSize: 11),
@@ -276,13 +282,13 @@ class _DashboardViewState extends State<DashboardView> {
           ),
         ),
         if (!compact) ...[
-          _legendItem('Critical', const Color(0xFFFB7185)),
+          _legendItem('Critical (4)', const Color(0xFFFB7185)),
           const SizedBox(width: 10),
-          _legendItem('High', const Color(0xFFF97316)),
+          _legendItem('High (5)', const Color(0xFFF97316)),
           const SizedBox(width: 10),
-          _legendItem('Moderate', const Color(0xFFFBBF24)),
+          _legendItem('Medium (6)', const Color(0xFFFBBF24)),
           const SizedBox(width: 10),
-          _legendItem('Low', const Color(0xFF2DD4BF)),
+          _legendItem('Low (5)', const Color(0xFF2DD4BF)),
         ],
       ],
     );

@@ -17,6 +17,32 @@ enum RiskLevel {
     }
   }
 
+  String get displayLabel {
+    switch (this) {
+      case RiskLevel.low:
+        return 'LOW';
+      case RiskLevel.moderate:
+        return 'MEDIUM';
+      case RiskLevel.high:
+        return 'HIGH';
+      case RiskLevel.critical:
+        return 'CRITICAL';
+    }
+  }
+
+  String get fullLabel {
+    switch (this) {
+      case RiskLevel.low:
+        return 'LOW RISK';
+      case RiskLevel.moderate:
+        return 'MEDIUM RISK';
+      case RiskLevel.high:
+        return 'HIGH RISK';
+      case RiskLevel.critical:
+        return 'CRITICAL RISK';
+    }
+  }
+
   static RiskLevel fromScore(double score) {
     if (score >= 70.0) return RiskLevel.critical;
     if (score >= 50.0) return RiskLevel.high;
